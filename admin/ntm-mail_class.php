@@ -31,7 +31,7 @@ class NTM_mail_template{
 
 	public function get_welcome_mail ( ) {
 
-		$default	=	__("<p>Hello [ENDORSER],</p><p>You have successfully joined with&nbsp;&nbsp;[SITE]. </p>
+		$default	=	__("<p>Hello [ENDORSER],</p><p>You have successfully joined with&nbsp;&nbsp;[SITE]. [AUTO_LOGIN_LINK]</p>
 							<p>Thank you and welcome to [SITE].</p>
 							<p>Referred Agent [AGENT]<p>
 							<p>[AGENT_EMAIL]<p>", ET_DOMAIN);
@@ -54,7 +54,7 @@ class NTM_mail_template{
 
 		if($default) {
 
-			$new_value	=	__("<p>Hello [ENDORSER],</p><p>You have successfully joined with&nbsp;&nbsp;[SITE]. </p>
+			$new_value	=	__("<p>Hello [ENDORSER],</p><p>You have successfully joined with&nbsp;&nbsp;[SITE]. [AUTO_LOGIN_LINK]</p>
 							<p>Thank you and welcome to [SITE].</p>
 							<p>Referred Agent [AGENT]<p>
 							<p>[AGENT_EMAIL]<p>", ET_DOMAIN);
@@ -125,8 +125,7 @@ come to your home and you don’t need to go to him.
 Terry is an expert at helping people resolve their financial planning needs. He’s been studying
 and mentoring people for 20+ years, but most of all Terry enjoys helping people meet their
 financial planning needs. He is the real deal.
-To learn more about Terry, or register for a free consultation, click here ___________ (insert link
-here). His number is 604-288-1420. I recommend you register, or give him a call right away,
+To learn more about Terry, or register for a free consultation, click here ___________ [TRACK_LINK]. His number is 604-288-1420. I recommend you register, or give him a call right away,
 because his schedule fills up fast.
 Let me know if you have any questions,", ET_DOMAIN);
 
@@ -159,8 +158,7 @@ come to your home and you don’t need to go to him.
 Terry is an expert at helping people resolve their financial planning needs. He’s been studying
 and mentoring people for 20+ years, but most of all Terry enjoys helping people meet their
 financial planning needs. He is the real deal.
-To learn more about Terry, or register for a free consultation, click here ___________ (insert link
-here). His number is 604-288-1420. I recommend you register, or give him a call right away,
+To learn more about Terry, or register for a free consultation, click here ___________ [TRACK_LINK]. His number is 604-288-1420. I recommend you register, or give him a call right away,
 because his schedule fills up fast.
 Let me know if you have any questions,", ET_DOMAIN);
 		
@@ -180,13 +178,13 @@ Let me know if you have any questions,", ET_DOMAIN);
 		$value = '<table cellpadding="5" width="750" cellspacing="0" border="0" style="background-color:#FFF;">
 				<td align="left" colspan="4" style="margin-right:30px; padding-left:10px;">'.$content.'</td>
 				</tr>
-                <tr><td colspan="4" align="center" style="background-color:#EAEAEA; border-top: solid 3px #1E1F22; padding-top:10px; color:#000;">© '.date("Y").' '.get_option('blogname').', Inc. All Rights Reserved.</td></tr>
+                <tr><td colspan="4" align="center" style="background-color:#EAEAEA; border-top: solid 3px #1E1F22; padding-top:10px; color:#000;">Poweredby NTM Endorsement</td></tr>
 </table>';
 
 		return $value;
 	}
 	
-	public function send_welcome_mail($email, $user_id){
+	public function send_welcome_mail($email, $user_id, $autologin){
 					
 		global $current_user;
 		
@@ -196,12 +194,14 @@ Let me know if you have any questions,", ET_DOMAIN);
 		
 		$data = $this->get_welcome_mail();
 		
+		print_r(get_permalink(get_option('ENDORSEMENT_FRONT_END')).'?autologin='.base64_encode(base64_encode($autologin)));
+		
 		$subject = $data['subject'];
 		
 		$content = $data['content'];
 		
 		$content 	=	str_ireplace('[ENDORSER]', $username, $content);
-		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', $username, $content);
+		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', get_permalink(get_option('ENDORSEMENT_FRONT_END')).'?autologin='.base64_encode(base64_encode($autologin)), $content);
 		$content 	=	str_ireplace('[AGENT]', $current_user->user_login, $content);
 		$content 	=	str_ireplace('[AGENT_EMAIL]', $current_user->user_email, $content);				
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
@@ -232,7 +232,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 		
 		$content = $data['content'];
 		
-		$content 	=	str_ireplace('[ENDORSER]', $user_info->username, $content);
+		$content 	=	str_ireplace('[ENDORSER]', $user_info->user_login, $content);
 		$content 	=	str_ireplace('[ENDORSER_EMAIL]', $user_info->user_email, $content);
 		$content 	=	str_ireplace('[AGENT]', $current_user->user_login, $content);
 		$content 	=	str_ireplace('[AGENT_EMAIL]', $current_user->user_email, $content);				
@@ -246,9 +246,10 @@ Let me know if you have any questions,", ET_DOMAIN);
 				
 		$message	=	$this->get_mail_template($content);
 					
-		if(wp_mail(get_option('admin_email') , $message, $headers))
+		if(wp_mail(get_option('admin_email'), $subject, $message, $headers))
 		return true;
 		else
 		return false;
+		
 	}
 }

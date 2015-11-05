@@ -84,7 +84,7 @@ class Endorsements_admin{
 				}
 				else
 				{
-					$ntm_mail->send_welcome_mail($user['user_email'], $user_id);
+					$ntm_mail->send_welcome_mail($user['user_email'], $user_id, $user['user_login'].'#'.$user['user_pass']);
 					$ntm_mail->send_notification_mail($user_id);
 				}
 			} else {
@@ -106,6 +106,9 @@ class Endorsements_admin{
 	
 	public function endorsers_page()
     {
+		$endosersTable = new EndoserTable();
+		$endosersTable->prepare_items();
+		$endosersTable->display();
 		?>
 		
 		<?php

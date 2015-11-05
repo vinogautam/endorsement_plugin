@@ -35,7 +35,9 @@
 	
 	function Endorsement_install()
 	{
-		
+		global $wpdb;
+		$cpage = array('post_title' => 'Endorsement', 'post_content' => '[ENDORSEMENT_FRONT_END]', 'post_type' => 'page', 'post_status' => 'publish');
+		update_option('ENDORSEMENT_FRONT_END', wp_insert_post( $cpage));
 	}
 	
 	function Endorsement_uninstall()
@@ -50,7 +52,9 @@
 	
 	function Endorsement_frontend()
 	{
+		$ntm_front_end = new NTM_Frontend();
 		
+		return $ntm_front_end->frontend();
 	}
 	
 	function Endorsement_load_js_and_css()

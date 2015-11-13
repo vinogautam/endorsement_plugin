@@ -25,6 +25,8 @@ class EndoserTable extends WP_List_Table {
                 return $item[$column_name];
 			case 'user_registered':
                 return date('Y/m/d', strtotime($item[$column_name]));
+			case 'resend_welcome_email':
+                return '<a href="admin.php?page=ntmEndorsements&tab=endorsers&resend_welcome_email='.$item['ID'].'">Resend Link</a>';
             default:
                 return 0;//print_r($item,true); //Show the whole array for troubleshooting purposes
         }
@@ -63,7 +65,8 @@ class EndoserTable extends WP_List_Table {
             'user_email'    => 'Email',
 			'nop'      =>'Autologin',
 			'invitation'    => 'No of invitation',
-			'user_registered' => 'Registered Date'
+			'user_registered' => 'Registered Date',
+			'resend_welcome_email' => 'Resend Link'
         );
         return $columns;
     }

@@ -194,7 +194,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 		
 		$data = $this->get_welcome_mail();
 		
-		print_r(get_permalink(get_option('ENDORSEMENT_FRONT_END')).'?autologin='.base64_encode(base64_encode($autologin)));
+		//print_r(get_permalink(get_option('ENDORSEMENT_FRONT_END')).'?autologin='.base64_encode(base64_encode($autologin)));
 		
 		$subject = $data['subject'];
 		

@@ -91,6 +91,14 @@ class Endorsements_admin{
 				$error = __('User already exists.  Password inherited.');
 			}
 		}
+		elseif(isset($_GET['resend_welcome_email']))
+		{
+			$userpass = wp_generate_password( $length=12, $include_standard_special_chars=false );
+			$user_info = get_userdata($_GET['resend_welcome_email']);
+			$username = $user_info->user_login;
+			
+			$ntm_mail->send_welcome_mail($user_info->user_email, $_GET['resend_welcome_email'], $username.'#'.$userpass);
+		}
 		?>
         <div class="wrap">
             <h2><?php echo $current_page;?></h2>           

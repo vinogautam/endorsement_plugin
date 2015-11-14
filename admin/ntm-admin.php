@@ -11,6 +11,7 @@ class Endorsements_admin{
         if(is_multisite() && is_super_admin() || current_user_can('manage_options')) {
              
             add_menu_page( 'Endorsements', 'Endorsements', 'manage_options', 'ntmEndorsements', array( $this, 'create_ntmadmin_page' ));
+			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Add Endorser',  9, 'ntmEndorsements&tab=add_endorsers', array( &$this, 'mail_template'));
 			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Email Template',  9, 'mail_template', array( &$this, 'mail_template'));
 			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Settings',  9, 'settings', array( &$this, 'settingsPage'));		
         
@@ -65,40 +66,12 @@ class Endorsements_admin{
     {   global $pagenow, $current_user, $ntm_mail;
 		if ( isset ( $_GET['tab'] ) ) $current = $_GET['tab']; else $current = 'endorsers';
 		
-		$tabs = array( 'endorsers' => 'Endorsers', 'add_endorsers' => 'Add New Endorsers');
+		$tabs = array( 'endorsers' => 'Endorsers', 'add_endorsers' => 'Add New Endorsers', 'template_list' => 'Letter Template', 'add_template' => 'Add New Template');
 		$current_page = $tabs[$current];
 		$current_tab = $current.'_page';
 		
-		if(isset($_POST['submit']))
-		{
-			$user = $_POST['user'];
-			$user['role'] = 'endorser';
-			$user['user_login'] = strtolower($user['first_name'].'_'.$user['last_name']);
-			
-			$user_id = username_exists( $user['user_login'] );
-			if ( !$user_id and email_exists($user['user_email']) == false ) {
-				$user['user_pass'] = wp_generate_password( $length=12, $include_standard_special_chars=false );
-				$user_id = wp_insert_user( $user ) ;
-				if (  is_wp_error( $user_id ) ) {
-					$error = __('Something went wrong. Try Again!!!.');
-				}
-				else
-				{
-					$ntm_mail->send_welcome_mail($user['user_email'], $user_id, $user['user_login'].'#'.$user['user_pass']);
-					$ntm_mail->send_notification_mail($user_id);
-				}
-			} else {
-				$error = __('User already exists.  Password inherited.');
-			}
-		}
-		elseif(isset($_GET['resend_welcome_email']))
-		{
-			$userpass = wp_generate_password( $length=12, $include_standard_special_chars=false );
-			$user_info = get_userdata($_GET['resend_welcome_email']);
-			$username = $user_info->user_login;
-			wp_set_password( $userpass, $_GET['resend_welcome_email'] );
-			$ntm_mail->send_welcome_mail($user_info->user_email, $_GET['resend_welcome_email'], $username.'#'.$userpass);
-		}
+		$error = $this->post_actions();
+		
 		?>
         <div class="wrap">
             <h2><?php echo $current_page;?></h2>           
@@ -124,6 +97,11 @@ class Endorsements_admin{
     
     public function add_endorsers_page()
     {
+		global $wpdb;
+		
+		$endorser_template = $wpdb->get_results("select * from ".$wpdb->prefix . "mailtemplates where type='Endorser'");
+		$endorsement_template = $wpdb->get_results("select * from ".$wpdb->prefix . "mailtemplates where type!='Endorser'")
+		
 		?>
 		<form method="post" action="<?php admin_url( 'admin.php?page=ntmEndorsements' ); ?>">
 			<table class="form-table">
@@ -140,9 +118,77 @@ class Endorsements_admin{
 						<th scope="row"><label for="blogname">Email</label></th>
 						<td><input type="text" class="regular-text" value="" id="blogname" name="user[user_email]"></td>
 					</tr>
+					<tr>
+						<th scope="row"><label for="blogname">Endorser Letter</label></th>
+						<td><select class="regular-text" name="letter[type]">
+								<?php foreach($endorser_template as $r){?>
+								<option value="<?php _e($r->id);?>"><?php _e($r->name);?></option>
+								<?php }?>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="blogname">Endorsement Letter</label></th>
+						<td><select class="regular-text" name="letter[type]">
+								<?php foreach($endorsement_template as $r){?>
+								<option value="<?php _e($r->id);?>"><?php _e($r->name);?></option>
+								<?php }?>
+							</select>
+						</td>
+					</tr>
 				</tbody>
 			</table>
 			<?php submit_button();?>
+		</form>
+		<?php
+	}
+	
+	public function template_list_page()
+    {
+		$endosersTable = new LetterTable();
+		$endosersTable->prepare_items();
+		$endosersTable->display();
+		?>
+		
+		<?php
+	}
+    
+    public function add_template_page()
+    {
+		?>
+		<link rel="stylesheet" type="text/css" href="<?php _e(NTM_PLUGIN_URL);?>/assets/css/ckeditor.css" media="all" />
+		<script type='text/javascript' src='<?php _e(NTM_PLUGIN_URL);?>/assets/js/ckeditor/ckeditor.js'></script>
+		<form method="post" action="<?php admin_url( 'admin.php?page=ntmEndorsements' ); ?>">
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th scope="row"><label for="blogname">Type</label></th>
+						<td><select class="regular-text" name="letter[type]">
+								<option>Endorser</option>
+								<option>Endorsement</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="blogname">Letter Name</label></th>
+						<td><input type="text" class="regular-text" value="" id="blogname" name="letter[name]"></td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="blogname">Subject</label></th>
+						<td><input type="text" class="regular-text" value="" id="blogname" name="letter[subject]"></td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="blogname">Content</label></th>
+						<td>
+							<textarea cols="80" id="editor" name="" rows="10" name="letter[content]"><?php _e($mailtemplate['content']);?></textarea>
+							<script>
+								CKEDITOR.replace( 'editor' );
+							</script>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<?php submit_button('Save Letter', 'primary', 'letter-save');?>
 		</form>
 		<?php
 	}
@@ -228,6 +274,47 @@ class Endorsements_admin{
     </div>    
 		
 <?php 
+	}
+	
+	function post_actions()
+	{
+		global $wpdb;
+		
+		if(isset($_POST['submit']))
+		{
+			$user = $_POST['user'];
+			$user['role'] = 'endorser';
+			$user['user_login'] = strtolower($user['first_name'].'_'.$user['last_name']);
+			
+			$user_id = username_exists( $user['user_login'] );
+			if ( !$user_id and email_exists($user['user_email']) == false ) {
+				$user['user_pass'] = wp_generate_password( $length=12, $include_standard_special_chars=false );
+				$user_id = wp_insert_user( $user ) ;
+				if (  is_wp_error( $user_id ) ) {
+					return __('Something went wrong. Try Again!!!.');
+				}
+				else
+				{
+					$ntm_mail->send_welcome_mail($user['user_email'], $user_id, $user['user_login'].'#'.$user['user_pass']);
+					$ntm_mail->send_notification_mail($user_id);
+				}
+			} else {
+				return __('User already exists.  Password inherited.');
+			}
+		}
+		elseif(isset($_GET['resend_welcome_email']))
+		{
+			$userpass = wp_generate_password( $length=12, $include_standard_special_chars=false );
+			$user_info = get_userdata($_GET['resend_welcome_email']);
+			$username = $user_info->user_login;
+			wp_set_password( $userpass, $_GET['resend_welcome_email'] );
+			$ntm_mail->send_welcome_mail($user_info->user_email, $_GET['resend_welcome_email'], $username.'#'.$userpass);
+		}
+		elseif(isset($_POST['letter-save']))
+		{
+			$_POST['letter']['created'] = date("Y-m-d H:i:s");
+			$wpdb->insert($wpdb->prefix . "mailtemplates", $_POST['letter']);
+		}
 	}
         
 } //end class endorsements

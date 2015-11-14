@@ -36,8 +36,28 @@
 	function Endorsement_install()
 	{
 		global $wpdb;
-		$cpage = array('post_title' => 'Endorsement', 'post_content' => '[ENDORSEMENT_FRONT_END]', 'post_type' => 'page', 'post_status' => 'publish');
-		update_option('ENDORSEMENT_FRONT_END', wp_insert_post( $cpage));
+		
+		if(get_option('ENDORSEMENT_FRONT_END'))
+		{
+			$cpage = array('post_title' => 'Endorsement', 'post_content' => '[ENDORSEMENT_FRONT_END]', 'post_type' => 'page', 'post_status' => 'publish');
+			update_option('ENDORSEMENT_FRONT_END', wp_insert_post( $cpage));
+		}
+		
+		$mailtemplates = $wpdb->prefix . "mailtemplates";
+		
+		if($wpdb->get_var('SHOW TABLES LIKE ' . $mailtemplates) != $mailtemplates){
+			$sql_one = "CREATE TABLE " . $mailtemplates . "(
+			  id int(11) NOT NULL AUTO_INCREMENT,
+			   created datetime NOT NULL,
+			   name tinytext NOT NULL,
+			   subject tinytext NOT NULL,
+			   content text NOT NULL,
+			   type tinytext NOT NULL,
+			  PRIMARY KEY  (id) ) ENGINE=InnoDB";
+
+			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+			dbDelta($sql_one);
+		}
 	}
 	
 	function Endorsement_uninstall()

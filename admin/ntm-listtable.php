@@ -18,6 +18,8 @@ class EndoserTable extends WP_List_Table {
     }
 	
 	function column_default($item, $column_name){
+		global $wpdb;
+		
 		switch($column_name){
             case 'user_email':
                 return $item[$column_name];
@@ -25,6 +27,14 @@ class EndoserTable extends WP_List_Table {
                 return $item[$column_name];
 			case 'user_registered':
                 return date('Y/m/d', strtotime($item[$column_name]));
+			case 'endorser_letter':
+                $re = get_user_meta($item['ID'], 'endorser_letter', true);
+				$result = $wpdb->get_row("select name from ". $wpdb->prefix . "mailtemplates where id=".$re);
+				return $result->name ? $result->name : 'Default';
+			case 'endorsement_letter':
+                $re = get_user_meta($item['ID'], 'endorsement_letter', true);
+				$result = $wpdb->get_row("select name from ". $wpdb->prefix . "mailtemplates where id=".$re);
+				return $result->name ? $result->name : 'Default';
 			case 'resend_welcome_email':
                 return '<a href="admin.php?page=ntmEndorsements&tab=endorsers&resend_welcome_email='.$item['ID'].'">Resend Link</a>';
             default:
@@ -37,14 +47,14 @@ class EndoserTable extends WP_List_Table {
         	
 		//Build row actions
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&tab=%s&edit=%s">Edit</a>',$_REQUEST['page'],'homepage',$item['id']),
-            'delete'    => sprintf('<a href="?page=%s&tab=%s&delete=%s">Delete</a>',$_REQUEST['page'],$_REQUEST['tab'],$item['id']),
+            'edit'      => sprintf('<a href="?page=%s&tab=%s&edit=%s">Edit</a>',$_REQUEST['page'],'add_endorsers',$item['ID']),
+            'delete'    => sprintf('<a href="?page=%s&tab=endorsers&delete=%s">Delete</a>',$_REQUEST['page'],$item['ID']),
         );
         
         //Return the title contents
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            /*$1%s*/ $item['title'],
-            /*$2%s*/ $item['id'],
+            /*$1%s*/ get_user_meta($item['ID'], 'first_name', true).' '.get_user_meta($item['ID'], 'last_name', true),
+            /*$2%s*/ $item['ID'],
             /*$3%s*/ $this->row_actions($actions)
         );
     }
@@ -61,8 +71,10 @@ class EndoserTable extends WP_List_Table {
     function get_columns(){
         $columns = array(
             'cb'        => '<input type="checkbox" />', //Render a checkbox instead of text
-            'user_login'     => 'Username',
+            'title'     => 'Username',
             'user_email'    => 'Email',
+			'endorser_letter'	=> 'Endorser Letter',
+			'endorsement_letter' => 'Endorsement Letter',
 			'invitation'    => 'No of invitation',
 			'user_registered' => 'Registered Date',
 			'resend_welcome_email' => 'Resend Link'
@@ -72,7 +84,7 @@ class EndoserTable extends WP_List_Table {
     
     function get_sortable_columns() {
         $sortable_columns = array(
-            'user_login'     => array('user_login',false),    //true means it's already sorted
+            'title'     => array('user_login',false),    //true means it's already sorted
             'user_email'    => array('user_email',false),
             'user_registered'  => array('user_registered',false)
         );
@@ -90,10 +102,10 @@ class EndoserTable extends WP_List_Table {
         
         global $wpdb;
 		
-		if( 'delete'===$this->current_action() && $_GET['tab']=='a_list') {
+		if( 'delete'===$this->current_action()) {
 		$del_val = $_REQUEST['movie'];
 		foreach($del_val as $val) {
-		
+			wp_delete_user($val);
 		}}
        
     }
@@ -173,9 +185,7 @@ class LetterTable extends WP_List_Table {
 	
 	function column_default($item, $column_name){
 		switch($column_name){
-            case 'name':
-                return $item[$column_name];
-			case 'subject':
+            case 'subject':
                 return $item[$column_name];
 			case 'type':
                 return $item[$column_name];
@@ -193,13 +203,13 @@ class LetterTable extends WP_List_Table {
         	
 		//Build row actions
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&tab=%s&edit=%s">Edit</a>',$_REQUEST['page'],'homepage',$item['id']),
+            'edit'      => sprintf('<a href="?page=%s&tab=%s&edit=%s">Edit</a>',$_REQUEST['page'],'add_template',$item['id']),
             'delete'    => sprintf('<a href="?page=%s&tab=%s&delete=%s">Delete</a>',$_REQUEST['page'],$_REQUEST['tab'],$item['id']),
         );
         
         //Return the title contents
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            /*$1%s*/ $item['title'],
+            /*$1%s*/ $item['name'],
             /*$2%s*/ $item['id'],
             /*$3%s*/ $this->row_actions($actions)
         );
@@ -217,8 +227,8 @@ class LetterTable extends WP_List_Table {
     function get_columns(){
         $columns = array(
             'cb'        => '<input type="checkbox" />', //Render a checkbox instead of text
-            'name'     => 'Username',
-            'subject'    => 'Email',
+            'title'     => 'Name',
+            'subject'    => 'Subject',
 			'type'    => 'Letter Type',
 			'created' => 'Registered Date'
         );
@@ -243,10 +253,10 @@ class LetterTable extends WP_List_Table {
         
         global $wpdb;
 		
-		if( 'delete'===$this->current_action() && $_GET['tab']=='a_list') {
+		if( 'delete'===$this->current_action()) {
 		$del_val = $_REQUEST['movie'];
 		foreach($del_val as $val) {
-		
+			$wpdb->delete($wpdb->prefix . "mailtemplates", array( 'id' => $val ) );
 		}}
        
     }

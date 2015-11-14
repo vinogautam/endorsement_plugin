@@ -25,7 +25,7 @@ Class NTM_Frontend
 	  (function(u){
 		var d=document,s='script',a=d.createElement(s),m=d.getElementsByTagName(s)[0];
 		a.async=1;a.src=u;m.parentNode.insertBefore(a,m);
-	  })('//api.cloudsponge.com/widget/ced9f758e6b91cc20f195411df875d6d3b8c055e.js');
+	  })('//api.cloudsponge.com/widget/<?php echo get_option('cloudsponge');?>.js');
 	  window.csPageOptions = { 
 				textarea_id: "contact_list" ,
 				skipSourceMenu:true, // suppresses the source menu unless linked to directly

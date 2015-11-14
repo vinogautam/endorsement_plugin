@@ -31,6 +31,12 @@
 		add_role( 'agents', 'Agents', array( 'read' => true, 'level_0' => true ) );
 		
 		$ntmadmin = new Endorsements_admin();
+		
+		//add_action( 'wp_footer', 'affiliate_script', 100 );
+	}
+	
+	function affiliate_script() {
+		
 	}
 	
 	function Endorsement_install()
@@ -52,6 +58,26 @@
 			   name tinytext NOT NULL,
 			   subject tinytext NOT NULL,
 			   content text NOT NULL,
+			   type tinytext NOT NULL,
+			  PRIMARY KEY  (id) ) ENGINE=InnoDB";
+
+			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+			dbDelta($sql_one);
+		}
+		
+		$endorsements = $wpdb->prefix . "endorsements";
+		
+		if($wpdb->get_var('SHOW TABLES LIKE ' . $endorsements) != $endorsements){
+			$sql_one = "CREATE TABLE " . $endorsements . "(
+			  id int(11) NOT NULL AUTO_INCREMENT,
+			   created datetime NOT NULL,
+			   name tinytext NOT NULL,
+			   email tinytext NOT NULL,
+			   endorser_id int(11),
+			   track_status int(11),
+			   gift_status int(11),
+			   post_data text NOT NULL,
+			   tracker_id tinytext NOT NULL,
 			   type tinytext NOT NULL,
 			  PRIMARY KEY  (id) ) ENGINE=InnoDB";
 

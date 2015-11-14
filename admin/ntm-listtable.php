@@ -318,3 +318,163 @@ class LetterTable extends WP_List_Table {
     }
     
 }
+
+class EndorsementTable extends WP_List_Table {
+    
+    function __construct(){
+        global $status, $page;
+                
+        //Set parent defaults
+        parent::__construct( array(
+            'singular'  => 'movie',     //singular name of the listed records
+            'plural'    => 'movies',    //plural name of the listed records
+            'ajax'      => false        //does this table support ajax?
+        ) );
+        
+    }
+	
+	function column_default($item, $column_name){
+		switch($column_name){
+            case 'email':
+                return $item[$column_name];
+			case 'track_link':
+                return base64_encode(base64_encode($item['id'].'#&$#'.$item['endorser_id'].'#&$#'.$item['tracker_id']));
+			case 'track_status':
+                return $item[$column_name] ? "Yes" : "No";
+			case 'gift_status':
+                return $item[$column_name] ? "Yes" : "No";
+			case 'endorser_id':
+                return get_user_meta($item[$column_name], 'first_name', true).' '.get_user_meta($item[$column_name], 'last_name', true);
+			case 'created':
+                return date('Y/m/d', strtotime($item[$column_name]));
+			case 'post_data':
+                return '<a href="admin.php?page=ntmEndorsements&tab=view_endorsement&view='.$item['id'].'">View Detail</a>';
+            default:
+                return 0;//print_r($item,true); //Show the whole array for troubleshooting purposes
+        }
+    }
+    
+    function column_title($item){
+        
+        	
+		//Build row actions
+        $actions = array(
+            //'edit'      => sprintf('<a href="?page=%s&tab=%s&edit=%s">Edit</a>',$_REQUEST['page'],'add_template',$item['id']),
+            'delete'    => sprintf('<a href="?page=%s&tab=%s&delete=%s">Delete</a>',$_REQUEST['page'],$_REQUEST['tab'],$item['id']),
+        );
+        
+        //Return the title contents
+        return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
+            /*$1%s*/ $item['name'],
+            /*$2%s*/ $item['id'],
+            /*$3%s*/ $this->row_actions($actions)
+        );
+    }
+    
+    function column_cb($item){
+        return sprintf(
+            '<input type="checkbox" name="%1$s[]" value="%2$s" />',
+            /*$1%s*/ $this->_args['singular'],  //Let's simply repurpose the table's singular label ("movie")
+            /*$2%s*/ $item['id']                //The value of the checkbox should be the record's id
+        );
+    }
+    
+    
+    function get_columns(){
+        $columns = array(
+            'cb'        => '<input type="checkbox" />', //Render a checkbox instead of text
+            'title'     => 'Endorsement Name',
+            'email'    => 'Endorsement Email',
+			'endorser_id'    => 'Endorser',
+			'track_link'    => 'Track link',
+			'track_status'    => 'Track status',
+			'gift_status'    => 'Gift status',
+			'post_data'    => 'Post data',
+			'created' => 'Registered Date'
+        );
+        return $columns;
+    }
+    
+    function get_sortable_columns() {
+        $sortable_columns = array(
+            'name'     => array('name',false)
+        );
+        return $sortable_columns;
+    }
+    
+    function get_bulk_actions() {
+        $actions = array(
+            'delete'    => 'Delete'
+        );
+        return $actions;
+    }
+    
+    function process_bulk_action() {
+        
+        global $wpdb;
+		
+		if( 'delete'===$this->current_action()) {
+		$del_val = $_REQUEST['movie'];
+		foreach($del_val as $val) {
+			$wpdb->delete($wpdb->prefix . "endorsements", array( 'id' => $val ) );
+		}}
+       
+    }
+    
+    function prepare_items() {
+        global $wpdb; 
+        $per_page = 5;
+        $columns = $this->get_columns();
+        $hidden = array();
+        $sortable = $this->get_sortable_columns();
+        
+        $this->_column_headers = array($columns, $hidden, $sortable);
+        
+        $this->process_bulk_action();
+        
+		function objectToArray($d) 
+		{
+		if (is_object($d)) {
+			$d = get_object_vars($d);
+		}
+ 
+		if (is_array($d)) {
+			return array_map(__FUNCTION__, $d);
+		}
+		else {
+			return $d;
+		}
+		}
+		$data = objectToArray($wpdb->get_results("select * from ".$wpdb->prefix . "endorsements"));
+        $newdat = array();
+		foreach($data as $v){
+			$newdat[] = $v;
+		}
+		$data = $newdat;
+        function usort_reorder($a,$b){
+            $orderby = (!empty($_REQUEST['orderby'])) ? $_REQUEST['orderby'] : 'user_login'; //If no sort, default to title
+            $order = (!empty($_REQUEST['order'])) ? $_REQUEST['order'] : 'asc'; //If no order, default to asc
+            $result = strcmp($a[$orderby], $b[$orderby]); //Determine sort order
+            return ($order==='asc') ? $result : -$result; //Send final sort direction to usort
+        }
+        usort($data, 'usort_reorder');
+        
+        
+        $current_page = $this->get_pagenum();
+        
+        
+        $total_items = count($data);
+        
+        
+        $data = array_slice($data,(($current_page-1)*$per_page),$per_page);
+        
+        $this->items = $data;
+        
+        $this->set_pagination_args( array(
+            'total_items' => $total_items,                  //WE have to calculate the total number of items
+            'per_page'    => $per_page,                     //WE have to determine how many items to show on a page
+            'total_pages' => ceil($total_items/$per_page)   //WE have to calculate the total number of pages
+        ) );
+    }
+    
+}

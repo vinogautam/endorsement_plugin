@@ -115,7 +115,7 @@ class NTM_mail_template{
 	public function get_invitation_mail ( ) {
 
 
-		$default	=	__("Hi (referral’s name), I want to introduce you to Terry Thomas.
+		$default	=	__("Hi [ENDORSEMENT], I am [ENDORSER], I want to introduce you to Terry Thomas.
 I started working with Terry because I was struggling with my financial plan for quite some time.
 I’m happy I now have my financial plan in place.
 I thought of you, because we had spoken briefly about the need for a financial plan, so I asked
@@ -148,7 +148,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 
 		if($default) {
 
-			$new_value	=	__("Hi (referral’s name), I want to introduce you to Terry Thomas.
+			$new_value	=	__("Hi [ENDORSEMENT], I am [ENDORSER], I want to introduce you to Terry Thomas.
 I started working with Terry because I was struggling with my financial plan for quite some time.
 I’m happy I now have my financial plan in place.
 I thought of you, because we had spoken briefly about the need for a financial plan, so I asked
@@ -186,7 +186,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 	
 	public function send_welcome_mail($email, $user_id, $autologin){
 					
-		global $current_user;
+		global $current_user, $wpdb;
 		
 		$user_info = get_userdata($user_id);
       	
@@ -195,12 +195,20 @@ Let me know if you have any questions,", ET_DOMAIN);
 		$data = $this->get_welcome_mail();
 		
 		//print_r(get_permalink(get_option('ENDORSEMENT_FRONT_END')).'?autologin='.base64_encode(base64_encode($autologin)));
+		$endorser_letter = get_user_meta($user_id, 'endorser_letter', true);
+		if($endorser_letter)
+		{
+			$res = $wpdb->get_row("select * from ".$wpdb->prefix . "mailtemplates where id=".$endorser_letter);
+			$subject = $res->subject;
+			$content = $res->content;
+		}
+		else
+		{
+			$subject = $data['subject'];
+			$content = $data['content'];
+		}
 		
-		$subject = $data['subject'];
-		
-		$content = $data['content'];
-		
-		$content 	=	str_ireplace('[ENDORSER]', $username, $content);
+		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
 		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', get_permalink(get_option('ENDORSEMENT_FRONT_END')).'?autologin='.base64_encode(base64_encode($autologin)), $content);
 		$content 	=	str_ireplace('[AGENT]', $current_user->user_login, $content);
 		$content 	=	str_ireplace('[AGENT_EMAIL]', $current_user->user_email, $content);				
@@ -232,7 +240,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 		
 		$content = $data['content'];
 		
-		$content 	=	str_ireplace('[ENDORSER]', $user_info->user_login, $content);
+		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
 		$content 	=	str_ireplace('[ENDORSER_EMAIL]', $user_info->user_email, $content);
 		$content 	=	str_ireplace('[AGENT]', $current_user->user_login, $content);
 		$content 	=	str_ireplace('[AGENT_EMAIL]', $current_user->user_email, $content);				
@@ -251,5 +259,43 @@ Let me know if you have any questions,", ET_DOMAIN);
 		else
 		return false;
 		
+	}
+	
+	public function send_invitation_mail($info, $endorser, $id){
+					
+		global $current_user, $wpdb;
+		
+		$data = $this->get_invitation_mail();
+		
+		$endorser_letter = get_user_meta($endorser, 'endorsement_letter', true);
+		if($endorser_letter)
+		{
+			$res = $wpdb->get_row("select * from ".$wpdb->prefix . "mailtemplates where id=".$endorser_letter);
+			$subject = $res->subject;
+			$content = $res->content;
+		}
+		else
+		{
+			$subject = $data['subject'];
+			$content = $data['content'];
+		}
+		
+		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($endorser, 'first_name', true).' '.get_user_meta($endorser, 'last_name', true), $content);
+		$content 	=	str_ireplace('[ENDORSEMENT]', $info['name'], $content);
+		$content 	=	str_ireplace('[TRACK_LINK]', site_url().'?track='.base64_encode(base64_encode($id.'#&$#'.$endorser.'#&$#'.$info['tracker_id'])), $content);
+		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
+		
+		$headers  = 'MIME-Version: 1.0' . "\r\n";
+				
+		$headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
+				
+		$headers .= "From: ".get_option('blogname')." < ".get_option('admin_email')."> \r\n";
+				
+		$message	=	$this->get_mail_template($content);
+					
+		if(wp_mail($info['email'], $subject , $message, $headers))
+		return true;
+		else
+		return false;
 	}
 }

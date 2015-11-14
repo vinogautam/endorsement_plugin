@@ -3,7 +3,6 @@ Class NTM_Frontend
 {
 	function frontend()
 	{
-		
 		error_reporting(0);
 		if(!$this->check_login())
 		{
@@ -11,12 +10,19 @@ Class NTM_Frontend
 			return false;
 		}
 		
-		global $ntm_mail, $current_user;
+		global $ntm_mail, $current_user, $wpdb;
 	
-		$mailtemplate 	 	= 	$ntm_mail->get_invitation_mail ();
-		
-		//print_r($current_user);
-		
+		$endorser_letter = get_user_meta($current_user->ID, 'endorsement_letter', true);
+		if($endorser_letter)
+		{
+			$res = $wpdb->get_row("select * from ".$wpdb->prefix . "mailtemplates where id=".$endorser_letter);
+			$mailtemplate = $res->content;
+		}
+		else
+		{
+			$mailtemplate 	 	= 	$ntm_mail->get_invitation_mail ();
+			$mailtemplate = $mailtemplate['content'];
+		}
 		$invitation_status = $this->frontend_action();
 	?>
     <link rel="stylesheet" type="text/css" href="<?php _e(NTM_PLUGIN_URL);?>/assets/css/ckeditor.css" media="all" />
@@ -71,16 +77,15 @@ Class NTM_Frontend
 						<a class="deep-link desktop-only" style="display: none;" onclick="return cloudsponge.launch('outlook');"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/outlook-desktop.png"/></a>
 					</div>
 					<br>
-					<textarea id="contact_list" rows="5" cols="73"></textarea>
+					<textarea name="contact_list" id="contact_list" rows="5" cols="73"></textarea>
 					<br><br>
-					<textarea cols="80" id="editor" name="" rows="10"><?php _e($mailtemplate['content']);?></textarea>
+					<textarea cols="80" id="editor" name="" rows="10"><?php _e($mailtemplate);?></textarea>
 					<script>
 						CKEDITOR.replace( 'editor' );
 					</script>
 					<br>
 					<p class="submit">
-						<input type="hidden" name="role" value="job-seeker">
-						<input name="send_invitation" class="button-primary seeker_btn" value="<?php _e('Invite your friends'); ?>" type="submit" />
+					<input name="send_invitation" class="button-primary seeker_btn" value="<?php _e('Invite your friends'); ?>" type="submit" />
 					</p>
                 </form>
             </div>
@@ -106,8 +111,28 @@ Class NTM_Frontend
 	}
 	
 	function frontend_action(){
+		global $wpdb, $current_user, $ntm_mail;
+		
 		if(isset($_POST['send_invitation']))
 		{
+			$contact_list = explode(",", $_POST['contact_list']);
+			
+			foreach($contact_list as $res)
+			{
+				$ex1 = explode("<", $res);
+				$ex2 = explode(">", $ex1[1]);
+				
+				$info = array(
+					"name" => $ex1[0], 
+					"created" => date("Y-m-d H:i:s"), 
+					"email" => $ex2[0],
+					"endorser_id" => $current_user->ID,
+					"tracker_id" => wp_generate_password( $length=12, $include_standard_special_chars=false )
+				);
+				$wpdb->insert($wpdb->prefix . "endorsements", $info);
+				$ntm_mail->send_invitation_mail($info, $current_user->ID, $wpdb->insert_id);
+			}
+			
 			return true;
 		}
 		return false;

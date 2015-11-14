@@ -48,7 +48,7 @@ class Endorsements_admin{
     {   global $pagenow, $current_user, $ntm_mail;
 		if ( isset ( $_GET['tab'] ) ) $current = $_GET['tab']; else $current = 'endorsers';
 		
-		$tabs = array( 'endorsers' => 'Endorsers', 'add_endorsers' => 'Add New Endorsers', 'template_list' => 'Letter Template', 'add_template' => 'Add New Template');
+		$tabs = array( 'endorsers' => 'Endorsers', 'add_endorsers' => 'Add New Endorsers', 'template_list' => 'Letter Template', 'add_template' => 'Add New Template', 'endorsement' => 'Endorsement');
 		$current_page = $tabs[$current];
 		$current_tab = $current.'_page';
 		
@@ -140,6 +140,19 @@ class Endorsements_admin{
 		<form method="post">
 		<?php
 			$endosersTable = new LetterTable();
+			$endosersTable->prepare_items();
+			$endosersTable->display();
+		?>
+		</form>
+		<?php
+	}
+	
+	public function endorsement_page()
+    {
+		?>
+		<form method="post">
+		<?php
+			$endosersTable = new EndorsementTable();
 			$endosersTable->prepare_items();
 			$endosersTable->display();
 		?>
@@ -276,7 +289,7 @@ class Endorsements_admin{
 	
 	function post_actions()
 	{
-		global $wpdb;
+		global $wpdb, $ntm_mail;
 		
 		if(isset($_POST['submit']) && isset($_GET['edit']))
 		{
@@ -331,6 +344,8 @@ class Endorsements_admin{
 		}
 		elseif(isset($_GET['tab']) && $_GET['tab'] == 'template_list' && isset($_GET['delete']))
 			$wpdb->delete($wpdb->prefix . "mailtemplates", array( 'id' => $_GET['delete'] ) );
+		elseif(isset($_GET['tab']) && $_GET['tab'] == 'endorsement' && isset($_GET['delete']))
+			$wpdb->delete($wpdb->prefix . "endorsements", array( 'id' => $_GET['delete'] ) );
 		elseif(isset($_GET['tab']) && $_GET['tab'] == 'endorsers' && isset($_GET['delete']))
 			wp_delete_user($_GET['delete']);
 	}

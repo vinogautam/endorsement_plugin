@@ -273,16 +273,18 @@ Let me know if you have any questions,", ET_DOMAIN);
 			$res = $wpdb->get_row("select * from ".$wpdb->prefix . "mailtemplates where id=".$endorser_letter);
 			$subject = $res->subject;
 			$content = $res->content;
+			$pagelink = $res->page;
 		}
 		else
 		{
 			$subject = $data['subject'];
 			$content = $data['content'];
+			$pagelink = get_option('ENDORSEMENT_FRONT_END');
 		}
 		
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($endorser, 'first_name', true).' '.get_user_meta($endorser, 'last_name', true), $content);
 		$content 	=	str_ireplace('[ENDORSEMENT]', $info['name'], $content);
-		$content 	=	str_ireplace('[TRACK_LINK]', site_url().'?track='.base64_encode(base64_encode($id.'#&$#'.$endorser.'#&$#'.$info['tracker_id'])), $content);
+		$content 	=	str_ireplace('[TRACK_LINK]', get_permalink($pagelink).'?track='.base64_encode(base64_encode($id.'#&$#'.$endorser.'#&$#'.$info['tracker_id'])), $content);
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
 		
 		$headers  = 'MIME-Version: 1.0' . "\r\n";

@@ -169,14 +169,42 @@ class Endorsements_admin{
 		?>
 		<link rel="stylesheet" type="text/css" href="<?php _e(NTM_PLUGIN_URL);?>/assets/css/ckeditor.css" media="all" />
 		<script type='text/javascript' src='<?php _e(NTM_PLUGIN_URL);?>/assets/js/ckeditor/ckeditor.js'></script>
+		<script>
+			jQuery(document).ready(function(){
+				jQuery("#ltype").change(function(){
+					if(jQuery(this).val() == 'Endorsement')
+						jQuery("#landing_page").show();
+					else
+						jQuery("#landing_page").hide();
+				});
+			});
+		</script>
 		<form method="post" action="<?php admin_url( 'admin.php?page=ntmEndorsements' ); ?>">
 			<table class="form-table">
 				<tbody>
 					<tr>
 						<th scope="row"><label for="blogname">Type</label></th>
-						<td><select class="regular-text" name="letter[type]">
+						<td><select id="ltype" class="regular-text" name="letter[type]">
 								<option <?php echo isset($template) && $template->type == 'Endorser' ? 'selected' : '';?>>Endorser</option>
 								<option <?php echo isset($template) && $template->type == 'Endorsement' ? 'selected' : '';?>>Endorsement</option>
+							</select>
+						</td>
+					</tr>
+					<tr id="landing_page" style="display:<?php echo isset($template) && $template->type == 'Endorsement' ? '' : 'none';?>">
+						<th scope="row"><label for="blogname">Landing page</label></th>
+						<td><select name="letter[page]"> 
+							 <option value="">
+							<?php echo esc_attr( __( 'Select page' ) ); ?></option> 
+							 <?php 
+							  $pages = get_pages(); 
+							  foreach ( $pages as $page ) {
+								$sel = isset($template) && $template->page == $page->ID ? 'selected' : '';
+								$option = '<option '.$sel.' value="' . $page->ID . '">';
+								$option .= $page->post_title;
+								$option .= '</option>';
+								echo $option;
+							  }
+							 ?>
 							</select>
 						</td>
 					</tr>

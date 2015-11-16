@@ -27,6 +27,10 @@ class EndoserTable extends WP_List_Table {
                 return $item[$column_name];
 			case 'user_registered':
                 return date('Y/m/d', strtotime($item[$column_name]));
+			case 'invitation':
+				return get_user_meta($item['ID'], 'invitation_sent', true) 
+				? get_user_meta($item['ID'], 'tracked_invitation', true).'/'.get_user_meta($item['ID'], 'invitation_sent', true) 
+				: "-";
 			case 'endorser_letter':
                 $re = get_user_meta($item['ID'], 'endorser_letter', true);
 				$result = $wpdb->get_row("select name from ". $wpdb->prefix . "mailtemplates where id=".$re);
@@ -188,7 +192,7 @@ class LetterTable extends WP_List_Table {
             case 'subject':
                 return $item[$column_name];
 			case 'type':
-                return $item[$column_name];
+                return $item[$column_name] == 'Endorsement' ? 'Endorsement - ' . get_the_title($item['page']) : 'Endorser';
 			case 'created':
                 return date('Y/m/d', strtotime($item[$column_name]));
 			case 'resend_welcome_email':
@@ -348,7 +352,7 @@ class EndorsementTable extends WP_List_Table {
 			case 'created':
                 return date('Y/m/d', strtotime($item[$column_name]));
 			case 'post_data':
-                return '<a href="admin.php?page=ntmEndorsements&tab=view_endorsement&view='.$item['id'].'">View Detail</a>';
+                return '<pre>'.print_r(unserialize($item[$column_name])).'</pre>';
             default:
                 return 0;//print_r($item,true); //Show the whole array for troubleshooting purposes
         }

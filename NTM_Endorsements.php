@@ -32,18 +32,35 @@
 		
 		$ntmadmin = new Endorsements_admin();
 		
-		//add_action( 'wp_footer', 'affiliate_script', 100 );
+		if(isset($_GET['track']))
+			setcookie("endorsement_track_link", $_GET['track']);
+		if(isset($_COOKIE['endorsement_track_link']))
+			add_action( 'wp_footer', array( &$this, 'affiliate_script'), 100 );
 	}
 	
 	function affiliate_script() {
+		if(!count($_POST))
+			return;
 		
+		global $wpdb;
+		
+		$track_link = explode("#&$#", base64_decode(base64_decode($_COOKIE['endorsement_track_link'])));
+		$get_results = $wpdb->get_row("select * from ".$wpdb->prefix . "endorsements where id=".$track_link[0]." and tracker_id = '".$track_link[2]."' and track_status = 0");
+		if(count($get_results))
+		{
+			//Track and send gift to endorser
+			
+			$wpdb->update($wpdb->prefix . "endorsements", array("track_status" => 1, "post_data" => serialize($_POST)), array('id' => $track_link[0]));
+			update_user_meta($track_link[1], "tracked_invitation", (update_user_meta($track_link[1], "tracked_invitation", true) + 1));
+			
+		}
 	}
 	
 	function Endorsement_install()
 	{
 		global $wpdb;
 		
-		if(get_option('ENDORSEMENT_FRONT_END'))
+		if(!get_option('ENDORSEMENT_FRONT_END'))
 		{
 			$cpage = array('post_title' => 'Endorsement', 'post_content' => '[ENDORSEMENT_FRONT_END]', 'post_type' => 'page', 'post_status' => 'publish');
 			update_option('ENDORSEMENT_FRONT_END', wp_insert_post( $cpage));
@@ -59,6 +76,7 @@
 			   subject tinytext NOT NULL,
 			   content text NOT NULL,
 			   type tinytext NOT NULL,
+			   page int(11),
 			  PRIMARY KEY  (id) ) ENGINE=InnoDB";
 
 			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -74,8 +92,8 @@
 			   name tinytext NOT NULL,
 			   email tinytext NOT NULL,
 			   endorser_id int(11),
-			   track_status int(11),
-			   gift_status int(11),
+			   track_status int(1),
+			   gift_status int(1),
 			   post_data text NOT NULL,
 			   tracker_id tinytext NOT NULL,
 			   type tinytext NOT NULL,

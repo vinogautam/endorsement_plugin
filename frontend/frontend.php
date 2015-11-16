@@ -62,7 +62,7 @@ Class NTM_Frontend
     <?php if($invitation_status){?>
     <div id="message" class="updated"><p>Your invitation sent successfully.</p></div>
     <?php }?>
-		<p>Welcome <?php echo $current_user->user_login;?></p>
+		<p>Welcome <?php echo get_user_meta( $current_user->ID, 'first_name', true).' '.get_user_meta($current_user->ID, 'last_name', true);?></p>
 		<div class="postbox">
             <div class="inside group">
             	<form name="myform" method="post" >
@@ -132,6 +132,8 @@ Class NTM_Frontend
 				$wpdb->insert($wpdb->prefix . "endorsements", $info);
 				$ntm_mail->send_invitation_mail($info, $current_user->ID, $wpdb->insert_id);
 			}
+			
+			update_user_meta($current_user->ID, "invitation_sent", (update_user_meta($current_user->ID, "invitation_sent", true) + count($contact_list)));
 			
 			return true;
 		}

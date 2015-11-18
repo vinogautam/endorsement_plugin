@@ -178,7 +178,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 		$value = '<table cellpadding="5" width="750" cellspacing="0" border="0" style="background-color:#FFF;">
 				<td align="left" colspan="4" style="margin-right:30px; padding-left:10px;">'.$content.'</td>
 				</tr>
-                <tr><td colspan="4" align="center" style="background-color:#EAEAEA; border-top: solid 3px #1E1F22; padding-top:10px; color:#000;">Poweredby NTM Endorsement</td></tr>
+                <tr><td colspan="4" align="center" style="background-color:#EAEAEA; border-top: solid 3px #1E1F22; padding-top:10px; color:#000;">Poweredby Financial Insiders</td></tr>
 </table>';
 
 		return $value;
@@ -199,8 +199,8 @@ Let me know if you have any questions,", ET_DOMAIN);
 		if($endorser_letter)
 		{
 			$res = $wpdb->get_row("select * from ".$wpdb->prefix . "mailtemplates where id=".$endorser_letter);
-			$subject = $res->subject;
-			$content = $res->content;
+			$subject = isset($res->subject) ? $res->subject : $data['subject'];
+			$content = isset($res->content) ? $res->content : $data['content'];
 		}
 		else
 		{
@@ -271,9 +271,9 @@ Let me know if you have any questions,", ET_DOMAIN);
 		if($endorser_letter)
 		{
 			$res = $wpdb->get_row("select * from ".$wpdb->prefix . "mailtemplates where id=".$endorser_letter);
-			$subject = $res->subject;
-			$content = $res->content;
-			$pagelink = $res->page;
+			$subject = isset($res->subject) ? $res->subject : $data['subject'];
+			$content = isset($res->content) ? $res->content : $data['content'];
+			$pagelink = isset($res->page) ? $res->page : get_option('ENDORSEMENT_FRONT_END');
 		}
 		else
 		{

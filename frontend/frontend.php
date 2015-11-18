@@ -7,7 +7,7 @@ Class NTM_Frontend
 		if(!$this->check_login())
 		{
 			echo "Invalid Autologin link!!!";
-			return false;
+			//return false;
 		}
 		
 		global $ntm_mail, $current_user, $wpdb;
@@ -63,11 +63,13 @@ Class NTM_Frontend
     <div id="message" class="updated"><p>Your invitation sent successfully.</p></div>
     <?php }?>
 		<p>Welcome <?php echo get_user_meta( $current_user->ID, 'first_name', true).' '.get_user_meta($current_user->ID, 'last_name', true);?></p>
+		<?php $res = $wpdb->get_row("select * from ".$wpdb->prefix . "mailtemplates where id=".(get_user_meta($current_user->ID, 'endorsement_letter', true) ? get_user_meta($current_user->ID, 'endorsement_letter', true) : 0)); ?><br>
+		<?php $pagelink = isset($res->page) ? $res->page : get_option('ENDORSEMENT_FRONT_END');?>
 		<div class="postbox">
             <div class="inside group">
 					<div class="social_share">
-						<a onclick="window.open('http://www.facebook.com/sharer.php?u='+encodeURIComponent('<?php echo get_permalink(get_user_meta($current_user->ID, 'endorsement_letter', true)).'?ref='.base64_encode(base64_encode($current_user->ID.'#&$#fb'));?>'),'sharer','toolbar=0,status=0,width=626,height=436');return false;"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/fbshare.png"/></a>
-						<a onclick="window.open('https://twitter.com/intent/tweet?url='+encodeURIComponent('<?php echo get_permalink(get_user_meta($current_user->ID, 'endorsement_letter', true)).'?ref='.base64_encode(base64_encode($current_user->ID.'#&$#tw'));?>'),'sharer','toolbar=0,status=0,width=626,height=436');return false;"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/twshare.png"/></a>
+						<a onclick="window.open('http://www.facebook.com/sharer.php?u='+encodeURIComponent('<?php echo get_permalink($pagelink).'?ref='.base64_encode(base64_encode($current_user->ID.'#&$#fb'));?>'),'sharer','toolbar=0,status=0,width=626,height=436');return false;"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/fbshare.png"/></a>
+						<a onclick="window.open('https://twitter.com/intent/tweet?url='+encodeURIComponent('<?php echo get_permalink($pagelink).'?ref='.base64_encode(base64_encode($current_user->ID.'#&$#tw'));?>'),'sharer','toolbar=0,status=0,width=626,height=436');return false;"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/twshare.png"/></a>
 					</div>
 					<br>
 					<div class="social_button">

@@ -65,7 +65,11 @@ Class NTM_Frontend
 		<p>Welcome <?php echo get_user_meta( $current_user->ID, 'first_name', true).' '.get_user_meta($current_user->ID, 'last_name', true);?></p>
 		<div class="postbox">
             <div class="inside group">
-            	<form name="myform" method="post" >
+					<div class="social_share">
+						<a onclick="window.open('http://www.facebook.com/sharer.php?u='+encodeURIComponent('<?php echo get_permalink(get_user_meta($current_user->ID, 'endorsement_letter', true)).'?ref='.base64_encode(base64_encode($current_user->ID.'#&$#fb'));?>'),'sharer','toolbar=0,status=0,width=626,height=436');return false;"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/fbshare.png"/></a>
+						<a onclick="window.open('https://twitter.com/intent/tweet?url='+encodeURIComponent('<?php echo get_permalink(get_user_meta($current_user->ID, 'endorsement_letter', true)).'?ref='.base64_encode(base64_encode($current_user->ID.'#&$#tw'));?>'),'sharer','toolbar=0,status=0,width=626,height=436');return false;"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/twshare.png"/></a>
+					</div>
+					<br>
 					<div class="social_button">
 						<a class="deep-link desktop-only" style="display: none;" onclick="return cloudsponge.launch('linkedin');"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/linkedin.png"/></a>
 						<a class="deep-link delayed" onclick="return cloudsponge.launch('yahoo');"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/yahoo.png"/></a>
@@ -76,12 +80,25 @@ Class NTM_Frontend
 						<a class="deep-link desktop-only" style="display: none;" onclick="return cloudsponge.launch('addressbook');"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/apple-desktop.png"/></a>
 						<a class="deep-link desktop-only" style="display: none;" onclick="return cloudsponge.launch('outlook');"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/outlook-desktop.png"/></a>
 					</div>
-					<br>
+					<span>Or</span>
+					<p>Add Contact directly</p>
+					<p>Name: <input type="text" id="contactname">Email: <input type="email" id="contactemail"><button onclick="addcontact(jQuery);"></button></p>
+				<form name="myform" method="post" >
 					<textarea name="contact_list" id="contact_list" rows="5" cols="73"></textarea>
 					<br><br>
 					<textarea cols="80" id="editor" name="" rows="10"><?php _e($mailtemplate);?></textarea>
 					<script>
 						CKEDITOR.replace( 'editor' );
+						function addcontact($){
+							contact = $("#contactname").val()+' <'+$("#contactemail").val()+'>';
+							if($.trim($("#contact_list").val()))
+								$("#contact_list").val($("#contact_list").val()+', '+contact);
+							else
+								$("#contact_list").val(contact);
+							
+							$("#contactname").val('');
+							$("#contactemail").val('');
+						}
 					</script>
 					<br>
 					<p class="submit">

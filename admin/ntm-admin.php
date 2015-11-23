@@ -70,6 +70,8 @@ class Endorsements_admin{
 	public function endorsers_page()
     {
 		?>
+		<link rel="stylesheet" href="<?php _e(NTM_PLUGIN_URL);?>/assets/css/colorbox.css" />
+		<script src="<?php _e(NTM_PLUGIN_URL);?>/assets/js/jquery.colorbox-min.js"></script>
 		<form method="post">
 		<?php
 			$endosersTable = new EndoserTable();
@@ -77,6 +79,116 @@ class Endorsements_admin{
 			$endosersTable->display();
 		?>
 		</form>
+		<script>
+			jQuery(document).ready(function(){
+				jQuery(".inline").colorbox({inline:true, width:"50%"});
+				
+				jQuery(".inline").click(function(){
+					type = jQuery(this).data("type");
+					jQuery("#modalpopup"+type+" h2").text("Send Gift - "+jQuery(this).data("name"));
+					jQuery(".endorser_id").val(jQuery(this).data("id"));
+					jQuery.post(
+						ajaxurl, 
+						{
+							'action': 'get_endorsement',
+							'id':   jQuery(this).data("id"),
+							'type':   type
+						}, 
+						function(response){
+							response = JSON.parse(response);
+							if(type == 'new')
+							{
+								html = ''; 
+								jQuery.each(response['converted_endorsement'], function(k,v){
+									html += ( k+1 )+'. '+v['name']+' - '+v['email'];
+								});
+								jQuery("#converted_endorsement").html(html);
+								jQuery("#social_converted").html('Facebook-'+ (response['facebook'] ?response['facebook'] : 0) +'<br>Twitter-'+(response['twitter'] ?response['twitter'] : 0));
+							}
+							else
+							{
+								html = '';
+								jQuery.each(response['converted_endorsement'], function(k,v){
+									html += '<option value="'+v['id']+'">. '+v['name']+' - '+v['email']+'</option>';
+								});
+								jQuery("#endorsement_list").html(html);
+							}
+						}
+					);
+				});
+			});
+		</script>
+		<div style='display:none'>
+			<div class="modalpopups" id='modalpopupnew' style='padding:10px; background:#fff;'>
+				<h2></h2>
+				<form method="post" action="<?php admin_url( 'admin.php?page=ntmEndorsements' ); ?>">
+					<table class="form-table">
+						<tbody>
+							<tr>
+								<th scope="row"><label for="blogname">Converted Endorsement</label></th>
+								<td id="converted_endorsement">
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><label for="blogname">Social Count</label></th>
+								<td id="social_converted">
+									
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><label for="blogname">Gift Amount</label></th>
+								<td><select class="regular-text" name="gift_amount">
+										<option value="5">5$</option>
+										<option value="10">10$</option>
+										<option value="25">25$</option>
+										<option value="50">50$</option>
+										<option value="100">100$</option>
+										<option value="150">150$</option>
+										<option value="200">200$</option>
+									</select>
+								</td>
+							</tr>
+							
+						</tbody>
+					</table>
+					<input type="hidden" name="endorser_id" class="endorser_id">
+					<?php submit_button('Send Gift', 'primary', 'sendgift');?>
+				</form>
+			</div>
+			<div class="modalpopups" id='modalpopupold' style='padding:10px; background:#fff;'>
+				<h2></h2>
+				<form method="post" action="<?php admin_url( 'admin.php?page=ntmEndorsements' ); ?>">
+					<table class="form-table">
+						<tbody>
+							<tr>
+								<th scope="row"><label for="blogname">Gift Send Endorsements</label></th>
+								<td>
+									<select id="endorsement_list" multiple class="regular-text" name="endorsement[]">
+										
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><label for="blogname">Gift Amount</label></th>
+								<td><select class="regular-text" name="gift_amount">
+										<option value="5">5$</option>
+										<option value="10">10$</option>
+										<option value="25">25$</option>
+										<option value="50">50$</option>
+										<option value="100">100$</option>
+										<option value="150">150$</option>
+										<option value="200">200$</option>
+									</select>
+								</td>
+							</tr>
+							
+						</tbody>
+					</table>
+					<input type="hidden" name="endorser_id" class="endorser_id">
+					<?php submit_button('ReSend Gift', 'primary', 'resendgift');?>
+				</form>
+			</div>
+		</div>
 		<?php
 	}
     
@@ -242,7 +354,11 @@ class Endorsements_admin{
 			
 			'notification_mail' 		=>	 "New Endorser Notification to Admin Email template",
 
-			'invitation_mail'		=> 	 "Endorsement Invitation Email template"
+			'invitation_mail'		=> 	 "Endorsement Invitation Email template",
+			
+			'gift_mail'		=> 	 "Gift Conversion Email template",
+			
+			'regift_mail'		=> 	 "ReSend Gift Email template"
 
 		);
 	
@@ -257,6 +373,10 @@ class Endorsements_admin{
 		
 		$ntm_mail->set_invitation_mail ($_POST['invitation_mail'],$_POST['invitation_mail_subject'],false);
 		
+		$ntm_mail->set_gift_mail ($_POST['gift_mail'],$_POST['gift_mail_subject'],false);
+		
+		$ntm_mail->set_regift_mail ($_POST['regift_mail'],$_POST['regift_mail_subject'],false);
+		
 	}
 	elseif(isset($_GET['reset']))
 	{
@@ -270,6 +390,10 @@ class Endorsements_admin{
 		$get_mail[] 	 	= 	$ntm_mail->get_notification_mail ();
 		
 		$get_mail[] 	 	= 	$ntm_mail->get_invitation_mail ();
+		
+		$get_mail[] 	 	= 	$ntm_mail->get_gift_mail ();
+		
+		$get_mail[] 	 	= 	$ntm_mail->get_regift_mail ();
 		
 	?>
     <link rel="stylesheet" type="text/css" href="<?php _e(NTM_PLUGIN_URL);?>/assets/css/ckeditor.css" media="all" />
@@ -317,9 +441,56 @@ class Endorsements_admin{
 	
 	function post_actions()
 	{
-		global $wpdb, $ntm_mail;
+		global $wpdb, $ntm_mail, $current_user;
 		
-		if(isset($_POST['submit']) && isset($_GET['edit']))
+		if(isset($_POST['sendgift']))
+		{
+			$data = array(
+							'endorser_id' =>$_POST['endorser_id'],
+							'amout' => $_POST['gift_amount'],
+							'fb_count'	=> get_user_meta($_POST['id'], "tracked_fb_counter", true),
+							'twitter_count'	=> get_user_meta($_POST['id'], "tracked_tw_counter", true)
+							);
+			$wpdb->insert($wpdb->prefix . "gift_transaction", $data);
+			$gift_id = $wpdb->insert_id;
+			$get_results = $wpdb->get_results("select * from ".$wpdb->prefix . "endorsements where endorser_id=".$_POST['endorser_id']." and track_status is not null and gift_status is null");
+			foreach($get_results as $res)
+			{
+				$wpdb->insert($wpdb->prefix . "giftendorsements", array(
+																	"gift_id" => $gift_id, 
+																	"endorser_id" => $_POST['endorser_id'], 
+																	"endorsement_id" => $res->id,
+																	"agent_id" => $current_user->ID
+																	)
+								);
+				$wpdb->update($wpdb->prefix . "endorsements", array('gift_status' => 1), array('id' => $res->id));
+			}
+			
+			update_user_meta($_POST['endorser_id'], "tracked_fb_counter", 0);
+			update_user_meta($_POST['endorser_id'], "tracked_tw_counter", 0);
+			update_user_meta($_POST['endorser_id'], "tracked_counter", 0);
+			$ntm_mail->send_gift_mail('get_gift_mail', $user_id, $gift_id);
+		}
+		elseif(isset($_POST['resendgift']))
+		{
+			$data = array(
+							'endorser_id' =>$_POST['endorser_id'],
+							'amout' => $_POST['gift_amount']
+							);
+			$wpdb->insert($wpdb->prefix . "gift_transaction", $data);
+			$gift_id = $wpdb->insert_id;
+			foreach($_POST['endorsement'] as $res)
+			{
+				$wpdb->insert($wpdb->prefix . "giftendorsements", array(
+																	"gift_id" => $gift_id, 
+																	"endorser_id" => $_POST['endorser_id'], 
+																	"endorsement_id" => $res
+																	)
+								);
+			}
+			$ntm_mail->send_gift_mail('get_gift_mail', $user_id, $gift_id);
+		}
+		elseif(isset($_POST['submit']) && isset($_GET['edit']))
 		{
 			update_user_meta($_GET['edit'], 'endorser_letter', $_POST['endorser_letter']);
 			update_user_meta($_GET['edit'], 'endorsement_letter', $_POST['endorsement_letter']);
@@ -380,9 +551,9 @@ class Endorsements_admin{
 	
 	public function settingsPage()
     {   global $pagenow, $current_user, $ntm_mail;
-		if ( isset ( $_GET['tab'] ) ) $current = $_GET['tab']; else $current = 'cloudsponge';
+		if ( isset ( $_GET['tab'] ) ) $current = $_GET['tab']; else $current = 'settingsgeneral';
 		
-		$tabs = array( 'cloudsponge' => 'Cloudsponge', 'giftbit' => 'Giftbit');
+		$tabs = array('settingsgeneral' => 'General', 'cloudsponge' => 'Cloudsponge', 'giftbit' => 'Giftbit');
 		$current_page = $tabs[$current];
 		$current_tab = $current.'_settings';
 		
@@ -393,13 +564,33 @@ class Endorsements_admin{
             <h2><?php echo $current_page;?></h2>           
             <?php 
 				if(isset($error)) echo $error;
-				$this->adminTabs($tabs, 'cloudsponge', 'ntmEndorsements_settings');
+				$this->adminTabs($tabs, 'settingsgeneral', 'ntmEndorsements_settings');
 				$this->$current_tab();
 			?>
         </div>
         <?php
         
     }
+	
+	public function settingsgeneral_settings()
+	{
+		$option = get_option('twitter_text');
+		?>
+		
+		<form method="post">
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th scope="row"><label for="blogname">Twitter text</label></th>
+						<td><textarea name="twitter_text" rows="3" cols="60"><?php echo stripslashes($option);?></textarea></td>
+					</tr>
+					
+				</tbody>
+			</table>
+			<?php submit_button('Save ', 'primary', 'general-save');?>
+		</form>
+		<?php
+	}
 	
 	public function cloudsponge_settings()
 	{
@@ -414,29 +605,101 @@ class Endorsements_admin{
 					</tr>
 				</tbody>
 			</table>
-			<?php submit_button('Save Letter', 'primary', 'cloudsponge-save');?>
+			<?php submit_button('Save ', 'primary', 'cloudsponge-save');?>
 		</form>
 		<?php
 	}
 	
 	public function giftbit_settings()
 	{
+		
 		$option = get_option('giftbit');
+		
+		$headers = array('Authorization: Bearer '.$option['api']);
+		
+		if(isset($option['sandbox']))
+			$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/marketplace/regions");
+		else	
+			$ch = curl_init("https://api.giftbit.com/papi/v1/marketplace/regions");
+		
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		$curl_response = curl_exec($ch);
+		curl_close($ch);
+        
+        $regions = array();
+		$subregions = array();
+		foreach(json_decode($curl_response)->regions as $res)
+		{
+			if(isset($res->parent_id))
+				$subregions[] = $res;
+			else
+				$regions[] = $res;
+		}
+		
+		//echo "<pre>";print_r(json_decode($curl_response));
+		$giftbitregion = get_option('giftbitregion');
+		$giftbitsubregion = get_option('giftbitsubregion');
 		?>
+		<script>
+			jQuery(document).ready(function(){
+				jQuery("#giftbitregion").change(function(){
+					jQuery("#giftbitsubregion").val("");
+					if(jQuery.trim(jQuery(this).val()))
+					{
+						jQuery("#giftbitsubregion option[data-id]").hide();
+						jQuery("#giftbitsubregion option[data-id='"+jQuery(this).val()+"']").show();
+					}
+					else
+					{
+						jQuery("#giftbitsubregion option[data-id]").hide();
+					}
+				});
+				
+				if(jQuery.trim(jQuery("#giftbitregion").val()))
+				{
+					jQuery("#giftbitsubregion option[data-id]").hide();
+					jQuery("#giftbitsubregion option[data-id='"+jQuery("#giftbitregion").val()+"']").show();
+				}
+			});
+		</script>
 		<form method="post">
 			<table class="form-table">
 				<tbody>
 					<tr>
 						<th scope="row"><label for="blogname">Api key</label></th>
-						<td><input type="text" class="regular-text" value="<?php echo isset($option['api']) ? $option['api'] : '';?>" id="blogname" name="giftbit[api]"></td>
+						<td><textarea rows="4" cols="80" name="giftbit[api]"><?php echo isset($option['api']) ? $option['api'] : '';?></textarea></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="blogname">Sandbox</label></th>
 						<td><input type="checkbox" class="regular-text" <?php echo isset($option['sandbox']) ? 'checked' : '';?> value="1" id="blogname" name="giftbit[sandbox]"></td>
 					</tr>
+					<tr>
+						<th scope="row"><label for="blogname">Giftbit Region</label></th>
+						<td>
+							<select id="giftbitregion" name="giftbitregion">
+								<option value="">Select Region</option>
+								<?php foreach($regions as $res){ $sel = $res->id == $giftbitregion ? 'selected' : '';?>
+								<option <?php _e($sel);?> value="<?php _e($res->id);?>"><?php _e($res->name);?></option>
+								<?php }?>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="blogname">Giftbit Sub Region</label></th>
+						<td>
+							<select id="giftbitsubregion" name="giftbitsubregion">
+								<option value="">Select Sub Region</option>
+								<?php foreach($subregions as $res){$sel = $res->id == $giftbitsubregion ? 'selected' : '';?>
+								<option <?php _e($sel);?> style="display:none;" data-id="<?php _e($res->parent_id);?>" value="<?php _e($res->id);?>"><?php _e($res->name);?></option>
+								<?php }?>
+							</select>
+						</td>
+					</tr>
 				</tbody>
 			</table>
-			<?php submit_button('Save Letter', 'primary', 'giftbit-save');?>
+			<?php submit_button('Save ', 'primary', 'giftbit-save');?>
 		</form>
 		<?php
 	}
@@ -450,6 +713,13 @@ class Endorsements_admin{
 		elseif(isset($_POST['giftbit-save']))
 		{
 			update_option('giftbit', $_POST['giftbit']);
+			
+			update_option('giftbitregion', $_POST['giftbitregion']);
+			update_option('giftbitsubregion', $_POST['giftbitsubregion']);
+		}
+		elseif(isset($_POST['general-save']))
+		{
+			update_option('twitter_text', $_POST['twitter_text']);
 		}
 	}
         

@@ -4,10 +4,15 @@ Class NTM_Frontend
 	function frontend()
 	{
 		error_reporting(0);
-		if(!$this->check_login())
+		if(isset($_GET['gift']))
+		{
+			$this->select_vendor($_GET['gift']);
+			return false;
+		}
+		elseif(!$this->check_login())
 		{
 			echo "Invalid Autologin link!!!";
-			//return false;
+			return false;
 		}
 		
 		global $ntm_mail, $current_user, $wpdb;
@@ -69,7 +74,7 @@ Class NTM_Frontend
             <div class="inside group">
 					<div class="social_share">
 						<a onclick="window.open('http://www.facebook.com/sharer.php?u='+encodeURIComponent('<?php echo get_permalink($pagelink).'?ref='.base64_encode(base64_encode($current_user->ID.'#&$#fb'));?>'),'sharer','toolbar=0,status=0,width=626,height=436');return false;"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/fbshare.png"/></a>
-						<a onclick="window.open('https://twitter.com/intent/tweet?url='+encodeURIComponent('<?php echo get_permalink($pagelink).'?ref='.base64_encode(base64_encode($current_user->ID.'#&$#tw'));?>'),'sharer','toolbar=0,status=0,width=626,height=436');return false;"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/twshare.png"/></a>
+						<a onclick="window.open('https://twitter.com/intent/tweet?text=<?php echo get_option('twitter_text');?>&url='+encodeURIComponent('<?php echo get_permalink($pagelink).'?ref='.base64_encode(base64_encode($current_user->ID.'#&$#tw'));?>'),'sharer','toolbar=0,status=0,width=626,height=436');return false;"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/twshare.png"/></a>
 					</div>
 					<br>
 					<div class="social_button">
@@ -113,6 +118,59 @@ Class NTM_Frontend
 	<?php 
 	}
 	
+	function select_vendor($id){
+		global $wpdb;
+		$result = $wpdb->get_row("select * from ".$wpdb->prefix . "gift_transaction where gift_sent is not null and id = ".$id);
+		
+		if(!count($result))
+		{
+			echo "Already used this gift!!";
+			return;
+		}
+		$option = get_option('giftbit');
+		
+		$headers = array('Authorization: Bearer '.$option['api']);
+		
+		if(isset($option['sandbox']))
+			$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/marketplace/vendors");
+		else	
+			$ch = curl_init("https://api.giftbit.com/papi/v1/marketplace/vendors");
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		$curl_response = curl_exec($ch);
+		curl_close($ch);
+		
+		//echo "<pre>";print_r(json_decode($curl_response));
+		?>
+		
+		<div id="poststuff" class="wrap">
+			<?php if(isset($gift_status)){?>
+			<div id="message" class="updated"><p>Your invitation sent successfully.</p></div>
+			<?php }?>
+				<p>Welcome <?php echo get_user_meta( $result->endorser_id, 'first_name', true).' '.get_user_meta($result->endorser_id, 'last_name', true);?></p>
+				<div class="postbox">
+					<div class="inside group">
+						<form name="myform" method="post" >
+							<ul>
+								<?php foreach(json_decode($curl_response)->vendors as $res){?>
+								<li>
+									<input type="radio" name="vendor">
+									<img width="100" src="<?php _e($res->image_url);?>">
+								</li>
+								<?php }?>
+							</ul>
+							<p class="submit">
+							<input name="send_gift" class="button-primary seeker_btn" value="<?php _e('Send Gift'); ?>" type="submit" />
+							</p>
+						</form>
+					</div>
+				</div>
+			</div>  
+		
+		<?php
+	}
+	
 	function check_login(){
 		
 		global $current_user;
@@ -152,7 +210,7 @@ Class NTM_Frontend
 				$ntm_mail->send_invitation_mail($info, $current_user->ID, $wpdb->insert_id);
 			}
 			
-			update_user_meta($current_user->ID, "invitation_sent", (update_user_meta($current_user->ID, "invitation_sent", true) + count($contact_list)));
+			update_user_meta($current_user->ID, "invitation_sent", (get_user_meta($current_user->ID, "invitation_sent", true) + count($contact_list)));
 			
 			return true;
 		}

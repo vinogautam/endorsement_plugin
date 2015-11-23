@@ -18,6 +18,10 @@ class NTM_mail_template{
 			case 'invitation_mail':
 
 				return $this->set_invitation_mail( $new_value,'', true );
+				
+			case 'gift_mail':
+
+				return $this->set_gift_mail ( $new_value,'', true );
 			
 			default:
 
@@ -173,6 +177,84 @@ Let me know if you have any questions,", ET_DOMAIN);
 
 	}
 	
+	public function get_gift_mail ( ) {
+
+
+		$default	=	__("Hi [ENDORSER], Your covertion process is intiated. Please click below link and select your vendor. 
+		Then you will get your gift voucher. [SELECT_VENDOR_LINK].", ET_DOMAIN);
+
+		$content = get_option('gift_mail');
+		
+		$subject = get_option('gift_mail_subject');
+		
+		if($content)
+		$return = array('content' => $content, 'subject' => $subject);
+		else
+		$return = array('content' => $default, 'subject' => 'Gift coversion Initiated');
+		
+		return $return;
+
+	}
+
+	
+
+	public function set_gift_mail ( $new_value, $subject, $default ) {
+
+		if($default) {
+
+			$new_value	=	__("Hi [ENDORSER], Your covertion process is intiated. Please click below link and select your vendor. 
+			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", ET_DOMAIN);
+		
+			$subject = 'Gift coversion Initiated';
+		}
+
+		update_option('gift_mail', $new_value);
+		
+		update_option('gift_mail_subject', $subject);
+
+		return array('content' => $new_value, 'subject' => $subject);
+
+	}
+	
+	public function get_regift_mail ( ) {
+
+
+		$default	=	__("Hi [ENDORSER], Your agent resend gift for your converted endorsement. Please click below link and select your vendor. 
+			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", ET_DOMAIN);
+
+		$content = get_option('regift_mail');
+		
+		$subject = get_option('regift_mail_subject');
+		
+		if($content)
+		$return = array('content' => $content, 'subject' => $subject);
+		else
+		$return = array('content' => $default, 'subject' => 'Get Bonus Gift');
+		
+		return $return;
+
+	}
+
+	
+
+	public function set_regift_mail ( $new_value, $subject, $default ) {
+
+		if($default) {
+
+			$new_value	=	__("Hi [ENDORSER], Your agent resend gift for your converted endorsement. Please click below link and select your vendor. 
+			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", ET_DOMAIN);
+		
+			$subject = 'Get Bonus Gift';
+		}
+
+		update_option('regift_mail', $new_value);
+		
+		update_option('regift_mail_subject', $subject);
+
+		return array('content' => $new_value, 'subject' => $subject);
+
+	}
+	
 	public function get_mail_template($content){
 		
 		$value = '<table cellpadding="5" width="750" cellspacing="0" border="0" style="background-color:#FFF;">
@@ -183,6 +265,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 
 		return $value;
 	}
+	
 	
 	public function send_welcome_mail($email, $user_id, $autologin){
 					
@@ -296,6 +379,39 @@ Let me know if you have any questions,", ET_DOMAIN);
 		$message	=	$this->get_mail_template($content);
 					
 		if(wp_mail($info['email'], $subject , $message, $headers))
+		return true;
+		else
+		return false;
+	}
+	
+	public function send_gift_mail($template, $user_id, $gift){
+					
+		global $current_user, $wpdb;
+		
+		$user_info = get_userdata($user_id);
+      	
+		$username = $user_info->user_login;
+		
+		$data = $this->$template();
+		
+		$subject = $data['subject'];
+		$content = $data['content'];
+		
+		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
+		$content 	=	str_ireplace('[SELECT_VENDOR_LINK]', get_permalink(get_option('ENDORSEMENT_FRONT_END')).'?gift='.base64_encode(base64_encode($gift)), $content);
+		$content 	=	str_ireplace('[AGENT]', $current_user->user_login, $content);
+		$content 	=	str_ireplace('[AGENT_EMAIL]', $current_user->user_email, $content);				
+		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
+		
+		$headers  = 'MIME-Version: 1.0' . "\r\n";
+				
+		$headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
+				
+		$headers .= "From: ".get_option('blogname')." < ".get_option('admin_email')."> \r\n";
+				
+		$message	=	$this->get_mail_template($content);
+					
+		if(wp_mail($user_info->user_email, $subject , $message, $headers))
 		return true;
 		else
 		return false;

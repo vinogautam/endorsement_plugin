@@ -30,12 +30,34 @@
 		add_role( 'endorser', 'Endorser');
 		add_role( 'agents', 'Agents', array( 'read' => true, 'level_0' => true ) );
 		
+		add_action( 'wp_ajax_get_endorsement', array( &$this, 'get_endorsement'), 100 );
+		
 		$ntmadmin = new Endorsements_admin();
 		
 		if(isset($_GET['ref']))
 			setcookie("endorsement_track_link", $_GET['track'], time() + (86400 * 365), "/");
 		if(isset($_COOKIE['endorsement_track_link']) && !isset($_COOKIE['endorsement_tracked']))
 			add_action( 'wp_footer', array( &$this, 'affiliate_script'), 100 );
+	}
+	
+	function get_endorsement()
+	{
+		global $wpdb;
+		if($_POST['type'] == 'new')
+			$get_results = $wpdb->get_results("select * from ".$wpdb->prefix . "endorsements where endorser_id=".$_POST['id']." and track_status is not null and gift_status is null");
+		else
+			$get_results = $wpdb->get_results("select * from ".$wpdb->prefix . "endorsements where endorser_id=".$_POST['id']." and track_status is not null and gift_status is not null");
+		
+		$get_results = $get_results ? $get_results : array();
+		
+		echo json_encode(array(
+								"converted_endorsement" => $get_results, 
+								"facebook" => get_user_meta($_POST['id'], "tracked_fb_counter", true), 
+								"twitter" => get_user_meta($_POST['id'], "tracked_tw_counter", true)
+								)
+						);
+		
+		die(0);
 	}
 	
 	function affiliate_script() {
@@ -47,20 +69,22 @@
 		
 		if(count($track_link) == 3)
 		{
-			$get_results = $wpdb->get_row("select * from ".$wpdb->prefix . "endorsements where id=".$track_link[0]." and tracker_id = '".$track_link[2]."' and track_status = 0");
+			$get_results = $wpdb->get_row("select * from ".$wpdb->prefix . "endorsements where id=".$track_link[0]." and tracker_id = '".$track_link[2]."' and track_status is null");
 		
 			if(count($get_results))
 			{
 				//Track and send gift to endorser
 				
 				$wpdb->update($wpdb->prefix . "endorsements", array("track_status" => 1, "post_data" => serialize($_POST)), array('id' => $track_link[0]));
-				update_user_meta($track_link[1], "tracked_invitation", (update_user_meta($track_link[1], "tracked_invitation", true) + 1));
+				update_user_meta($track_link[1], "tracked_invitation", (get_user_meta($track_link[1], "tracked_invitation", true) + 1));
+				update_user_meta($track_link[1], "tracked_counter", (get_user_meta($track_link[1], "tracked_counter", true) + 1));
 				setcookie("endorsement_tracked", true, time() + (86400 * 365), "/");
 			}
 		}
 		else
 		{
-			update_user_meta($track_link[0], "tracked_".$track_link[1]."_invitation", (update_user_meta($track_link[1], "tracked_".$track_link[1]."_invitation", true) + 1));
+			update_user_meta($track_link[0], "tracked_".$track_link[1]."_invitation", (get_user_meta($track_link[1], "tracked_".$track_link[1]."_invitation", true) + 1));
+			update_user_meta($track_link[0], "tracked_".$track_link[1]."_counter", (get_user_meta($track_link[1], "tracked_".$track_link[1]."_counter", true) + 1));
 			setcookie("endorsement_tracked", true, time() + (86400 * 365), "/");
 		}
 	}
@@ -106,6 +130,41 @@
 			   post_data text NOT NULL,
 			   tracker_id tinytext NOT NULL,
 			   type tinytext NOT NULL,
+			  PRIMARY KEY  (id) ) ENGINE=InnoDB";
+
+			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+			dbDelta($sql_one);
+		}
+		
+		$gift = $wpdb->prefix . "gift_transaction";
+		
+		if($wpdb->get_var('SHOW TABLES LIKE ' . $gift) != $gift){
+			$sql_one = "CREATE TABLE " . $gift . "(
+			  id int(11) NOT NULL AUTO_INCREMENT,
+			   created datetime NOT NULL,
+			   endorser_id int(11),
+			   agent_id int(11),
+			   gift_id tinytext NOT NULL,
+			   amout tinytext NOT NULL,
+			   giftbitref_id tinytext NOT NULL,
+			   fb_count int(11),
+			   twitter_count int(11),
+			   gift_sent int(1),
+			  PRIMARY KEY  (id) ) ENGINE=InnoDB";
+
+			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+			dbDelta($sql_one);
+		}
+		
+		$giftendorsements = $wpdb->prefix . "giftendorsements";
+		
+		if($wpdb->get_var('SHOW TABLES LIKE ' . $giftendorsements) != $giftendorsements){
+			$sql_one = "CREATE TABLE " . $giftendorsements . "(
+			  id int(11) NOT NULL AUTO_INCREMENT,
+			   created datetime NOT NULL,
+			   gift_id tinytext NOT NULL,
+			   endorser_id int(11),
+			   endorsement_id int(11),
 			  PRIMARY KEY  (id) ) ENGINE=InnoDB";
 
 			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');

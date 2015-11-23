@@ -29,18 +29,41 @@ class EndoserTable extends WP_List_Table {
                 return date('Y/m/d', strtotime($item[$column_name]));
 			case 'invitation':
 				return get_user_meta($item['ID'], 'invitation_sent', true) 
-				? get_user_meta($item['ID'], 'tracked_invitation', true).'/'.get_user_meta($item['ID'], 'invitation_sent', true) 
+				? get_user_meta($item['ID'], 'invitation_sent', true) 
 				: "-";
+			case 'converted':
+				$res = 'Endorsement - '.(get_user_meta($item['ID'], "tracked_invitation", true));
+				$res .= '<br>Facebook - '.(get_user_meta($item['ID'], "tracked_fb_invitation", true));
+				$res .= '<br>Twitter - '.(get_user_meta($item['ID'], "tracked_tw_invitation", true));
+				return $res;
+			case 'converted_new':
+				$res = 'Endorsement - '.(get_user_meta($item['ID'], "tracked_counter", true));
+				$res .= '<br>Facebook - '.(get_user_meta($item['ID'], "tracked_fb_counter", true));
+				$res .= '<br>Twitter - '.(get_user_meta($item['ID'], "tracked_tw_counter", true));
+				return $res;
 			case 'endorser_letter':
                 $re = get_user_meta($item['ID'], 'endorser_letter', true);
 				$result = $wpdb->get_row("select name from ". $wpdb->prefix . "mailtemplates where id=".$re);
-				return $result->name ? $result->name : 'Default';
-			case 'endorsement_letter':
-                $re = get_user_meta($item['ID'], 'endorsement_letter', true);
-				$result = $wpdb->get_row("select name from ". $wpdb->prefix . "mailtemplates where id=".$re);
-				return $result->name ? $result->name : 'Default';
+				$re = get_user_meta($item['ID'], 'endorsement_letter', true);
+				$result2 = $wpdb->get_row("select name from ". $wpdb->prefix . "mailtemplates where id=".$re);
+				$ret = "Endorser : ". ($result->name ? $result->name : 'Default') ;
+				$ret .= "<br>Endorsement : ". ($result2->name ? $result2->name : 'Default') ;
+				return $ret;
 			case 'resend_welcome_email':
                 return '<a href="admin.php?page=ntmEndorsements&tab=endorsers&resend_welcome_email='.$item['ID'].'">Resend Link</a>';
+			case 'resend_gift':
+                $return = '';
+				$get_results = $wpdb->get_results("select * from ".$wpdb->prefix . "endorsements where endorser_id=".$item['ID']." and track_status is not null and gift_status is null");
+				if(count($get_results))
+					$return = '<a data-name="'.get_user_meta($item['ID'], 'first_name', true).' '.get_user_meta($item['ID'], 'last_name', true).'" data-type="new" data-id="'.$item['ID'].'" class="inline" href="#modalpopupnew">Send Gift</a>';
+				
+				$get_results = $wpdb->get_results("select * from ".$wpdb->prefix . "endorsements where endorser_id=".$item['ID']." and track_status is not null and gift_status is not null");
+				if(count($get_results))
+				{
+					$return = $return ? $return.'<br>' : '';
+					$return .= '<br><a data-name="'.get_user_meta($item['ID'], 'first_name', true).' '.get_user_meta($item['ID'], 'last_name', true).'" data-type="old" data-id="'.$item['ID'].'" class="inline" href="#modalpopupold">Resend Gift</a>';
+				}
+				return $return;
             default:
                 return 0;//print_r($item,true); //Show the whole array for troubleshooting purposes
         }
@@ -77,11 +100,14 @@ class EndoserTable extends WP_List_Table {
             'cb'        => '<input type="checkbox" />', //Render a checkbox instead of text
             'title'     => 'Username',
             'user_email'    => 'Email',
-			'endorser_letter'	=> 'Endorser Letter',
-			'endorsement_letter' => 'Endorsement Letter',
-			'invitation'    => 'No of invitation',
+			'endorser_letter'	=> 'Letter Template',
+			//'endorsement_letter' => 'Endorsement Letter',
+			'invitation'    => 'No of invitation sent',
+			'converted' => 'Total Coversion',
+			'converted_new' => 'New Coversion',
 			'user_registered' => 'Registered Date',
-			'resend_welcome_email' => 'Resend Link'
+			'resend_welcome_email' => 'Resend Auto Link',
+			'resend_gift' => 'Send/Resend Gift'
         );
         return $columns;
     }

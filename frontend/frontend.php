@@ -6,7 +6,7 @@ Class NTM_Frontend
 		error_reporting(0);
 		if(isset($_GET['gift']))
 		{
-			$this->select_vendor($_GET['gift']);
+			$this->select_vendor(base64_decode(base64_decode($_GET['gift'])));
 			return false;
 		}
 		elseif(!$this->check_login())
@@ -120,28 +120,83 @@ Class NTM_Frontend
 	
 	function select_vendor($id){
 		global $wpdb;
-		$result = $wpdb->get_row("select * from ".$wpdb->prefix . "gift_transaction where gift_sent is not null and id = ".$id);
+		/* $result = $wpdb->get_row("select * from ".$wpdb->prefix . "gift_transaction where gift_sent is null and id = ".$id);
 		
 		if(!count($result))
 		{
 			echo "Already used this gift!!";
 			return;
-		}
+		} */
 		$option = get_option('giftbit');
 		
 		$headers = array('Authorization: Bearer '.$option['api']);
 		
-		if(isset($option['sandbox']))
-			$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/marketplace/vendors");
-		else	
-			$ch = curl_init("https://api.giftbit.com/papi/v1/marketplace/vendors");
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		$curl_response = curl_exec($ch);
-		curl_close($ch);
+		$region = get_option('giftbitregion');
+		$amount = 500;
+		if(isset($_POST['vendor'])){
+			//echo "https://testbedapp.giftbit.com/papi/v1/marketplace/?region=".$region."&category=".$_POST['category'];
+			if(isset($option['sandbox']))
+				$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/marketplace/?prices_in_cents=".$amount."&region=".$region."&category=".$_POST['category']);
+			else	
+				$ch = curl_init("https://api.giftbit.com/papi/v1/marketplace/?prices_in_cents=".$amount."&region=".$region."&category=".$_POST['category']);
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			$curl_response3 = curl_exec($ch);
+			curl_close($ch);
+			
+			echo "<pre>";print_r(json_decode($curl_response3));exit;
+			
+			
+		}
+		else
+		{
+			
+			/*if(isset($option['sandbox']))
+				$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/marketplace/category/");
+			else	
+				$ch = curl_init("https://api.giftbit.com/papi/v1/marketplace/category/");
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			$curl_response1 = curl_exec($ch);
+			curl_close($ch);
 		
-		//echo "<pre>";print_r(json_decode($curl_response));
+			if(isset($option['sandbox']))
+				$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/marketplace/vendors");
+			else	
+				$ch = curl_init("https://api.giftbit.com/papi/v1/marketplace/vendors");
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			$curl_response2 = curl_exec($ch);
+			curl_close($ch);*/ 
+			
+			$data_string = array(
+                             'subject' => 'Test Message',
+                             'message' => 'Test message',
+                             'contacts' => array(array('firstname' => 'Vinodhagan', 'lastname' => 'Thangarajan', 'email' => 'dhanavel237vino@gmail.com')),
+                             'marketplace_gifts' => array(array('id' => 390, 'price_in_cents' => 500)),
+							 'expiry' => date('Y-m-d', strtotime('next month')),
+                             'id' => time()
+                            );
+			echo json_encode($data_string, JSON_NUMERIC_CHECK);				
+			if(isset($option['sandbox']))
+				$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/campaign");
+			else	
+				$ch = curl_init("https://api.giftbit.com/papi/v1/campaign");
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data_string, JSON_NUMERIC_CHECK));
+			curl_setopt($ch, CURLOPT_POST, 1);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			$curl_response2 = curl_exec($ch);
+			curl_close($ch);
+			echo '<pre>';print_r($curl_response2);echo '</pre>';
+		
+		}
+		
+		
 		?>
 		
 		<div id="poststuff" class="wrap">
@@ -152,17 +207,22 @@ Class NTM_Frontend
 				<div class="postbox">
 					<div class="inside group">
 						<form name="myform" method="post" >
+							<!--<p>
+								<label>Select Category</label>
+								<select name="category" >
+									<?php //foreach(json_decode($curl_response1)->categories as $res){?>
+									<option value="<?php _e($res->id);?>"><?php _e($res->name);?></option>
+									<?php //}?>
+								</select>
+							</p>-->
 							<ul>
-								<?php foreach(json_decode($curl_response)->vendors as $res){?>
+								<?php foreach(json_decode($curl_response2)->vendors as $res){?>
 								<li>
-									<input type="radio" name="vendor">
-									<img width="100" src="<?php _e($res->image_url);?>">
+									<input onchange="document.myform.submit();" id="vendor_<?php _e($res->id);?>" value="<?php _e($res->id);?>" type="radio" name="vendor">
+									<label for="vendor_<?php _e($res->id);?>"><img width="100" src="<?php _e($res->image_url);?>"></label>
 								</li>
 								<?php }?>
 							</ul>
-							<p class="submit">
-							<input name="send_gift" class="button-primary seeker_btn" value="<?php _e('Send Gift'); ?>" type="submit" />
-							</p>
 						</form>
 					</div>
 				</div>

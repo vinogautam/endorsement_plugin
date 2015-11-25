@@ -35,7 +35,7 @@
 		$ntmadmin = new Endorsements_admin();
 		
 		if(isset($_GET['ref']))
-			setcookie("endorsement_track_link", $_GET['track'], time() + (86400 * 365), "/");
+			setcookie("endorsement_track_link", $_GET['ref'], time() + (86400 * 365), "/");
 		if(isset($_COOKIE['endorsement_track_link']) && !isset($_COOKIE['endorsement_tracked']))
 			add_action( 'wp_footer', array( &$this, 'affiliate_script'), 100 );
 	}
@@ -46,7 +46,7 @@
 		if($_POST['type'] == 'new')
 			$get_results = $wpdb->get_results("select * from ".$wpdb->prefix . "endorsements where endorser_id=".$_POST['id']." and track_status is not null and gift_status is null");
 		else
-			$get_results = $wpdb->get_results("select * from ".$wpdb->prefix . "endorsements where endorser_id=".$_POST['id']." and track_status is not null and gift_status is not null");
+			$get_results = $wpdb->get_results("select * from ".$wpdb->prefix . "endorsements where endorser_id=".$_POST['id']." and track_status is not null and gift_status = 1");
 		
 		$get_results = $get_results ? $get_results : array();
 		
@@ -70,7 +70,7 @@
 		if(count($track_link) == 3)
 		{
 			$get_results = $wpdb->get_row("select * from ".$wpdb->prefix . "endorsements where id=".$track_link[0]." and tracker_id = '".$track_link[2]."' and track_status is null");
-		
+			//print_r("select * from ".$wpdb->prefix . "endorsements where id=".$track_link[0]." and tracker_id = '".$track_link[2]."' and track_status is null");
 			if(count($get_results))
 			{
 				//Track and send gift to endorser

@@ -449,18 +449,19 @@ class Endorsements_admin{
 							'endorser_id' =>$_POST['endorser_id'],
 							'amout' => $_POST['gift_amount'],
 							'fb_count'	=> get_user_meta($_POST['id'], "tracked_fb_counter", true),
-							'twitter_count'	=> get_user_meta($_POST['id'], "tracked_tw_counter", true)
+							'twitter_count'	=> get_user_meta($_POST['id'], "tracked_tw_counter", true),
+							"agent_id" => $current_user->ID
 							);
 			$wpdb->insert($wpdb->prefix . "gift_transaction", $data);
 			$gift_id = $wpdb->insert_id;
 			$get_results = $wpdb->get_results("select * from ".$wpdb->prefix . "endorsements where endorser_id=".$_POST['endorser_id']." and track_status is not null and gift_status is null");
+			
 			foreach($get_results as $res)
 			{
 				$wpdb->insert($wpdb->prefix . "giftendorsements", array(
 																	"gift_id" => $gift_id, 
 																	"endorser_id" => $_POST['endorser_id'], 
-																	"endorsement_id" => $res->id,
-																	"agent_id" => $current_user->ID
+																	"endorsement_id" => $res->id
 																	)
 								);
 				$wpdb->update($wpdb->prefix . "endorsements", array('gift_status' => 1), array('id' => $res->id));
@@ -469,7 +470,7 @@ class Endorsements_admin{
 			update_user_meta($_POST['endorser_id'], "tracked_fb_counter", 0);
 			update_user_meta($_POST['endorser_id'], "tracked_tw_counter", 0);
 			update_user_meta($_POST['endorser_id'], "tracked_counter", 0);
-			$ntm_mail->send_gift_mail('get_gift_mail', $user_id, $gift_id);
+			$ntm_mail->send_gift_mail('get_gift_mail', $_POST['endorser_id'], $gift_id);
 		}
 		elseif(isset($_POST['resendgift']))
 		{
@@ -487,8 +488,9 @@ class Endorsements_admin{
 																	"endorsement_id" => $res
 																	)
 								);
+				$wpdb->update($wpdb->prefix . "endorsements", array('gift_status' => 2), array('id' => $res->id));
 			}
-			$ntm_mail->send_gift_mail('get_gift_mail', $user_id, $gift_id);
+			$ntm_mail->send_gift_mail('get_gift_mail', $_POST['endorser_id'], $gift_id);
 		}
 		elseif(isset($_POST['submit']) && isset($_GET['edit']))
 		{
@@ -686,7 +688,7 @@ class Endorsements_admin{
 							</select>
 						</td>
 					</tr>
-					<tr>
+					<!--<tr>
 						<th scope="row"><label for="blogname">Giftbit Sub Region</label></th>
 						<td>
 							<select id="giftbitsubregion" name="giftbitsubregion">
@@ -696,7 +698,7 @@ class Endorsements_admin{
 								<?php }?>
 							</select>
 						</td>
-					</tr>
+					</tr>-->
 				</tbody>
 			</table>
 			<?php submit_button('Save ', 'primary', 'giftbit-save');?>

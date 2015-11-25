@@ -57,7 +57,7 @@ class EndoserTable extends WP_List_Table {
 				if(count($get_results))
 					$return = '<a data-name="'.get_user_meta($item['ID'], 'first_name', true).' '.get_user_meta($item['ID'], 'last_name', true).'" data-type="new" data-id="'.$item['ID'].'" class="inline" href="#modalpopupnew">Send Gift</a>';
 				
-				$get_results = $wpdb->get_results("select * from ".$wpdb->prefix . "endorsements where endorser_id=".$item['ID']." and track_status is not null and gift_status is not null");
+				$get_results = $wpdb->get_results("select * from ".$wpdb->prefix . "endorsements where endorser_id=".$item['ID']." and track_status is not null and gift_status = 1");
 				if(count($get_results))
 				{
 					$return = $return ? $return.'<br>' : '';
@@ -90,7 +90,7 @@ class EndoserTable extends WP_List_Table {
         return sprintf(
             '<input type="checkbox" name="%1$s[]" value="%2$s" />',
             /*$1%s*/ $this->_args['singular'],  //Let's simply repurpose the table's singular label ("movie")
-            /*$2%s*/ $item['id']                //The value of the checkbox should be the record's id
+            /*$2%s*/ $item['ID']                //The value of the checkbox should be the record's id
         );
     }
     
@@ -134,6 +134,7 @@ class EndoserTable extends WP_List_Table {
 		
 		if( 'delete'===$this->current_action()) {
 		$del_val = $_REQUEST['movie'];
+		print_r($del_val);
 		foreach($del_val as $val) {
 			wp_delete_user($val);
 		}}
@@ -378,7 +379,10 @@ class EndorsementTable extends WP_List_Table {
 			case 'created':
                 return date('Y/m/d', strtotime($item[$column_name]));
 			case 'post_data':
-                return '<pre>'.print_r(unserialize($item[$column_name])).'</pre>';
+                echo '<pre>';
+				print_r(unserialize($item[$column_name]));
+				echo '</pre>';
+				return;
             default:
                 return 0;//print_r($item,true); //Show the whole array for troubleshooting purposes
         }

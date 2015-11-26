@@ -176,8 +176,10 @@ Class NTM_Frontend
                              'subject' => 'Test Message',
                              'message' => 'Test message',
                              'contacts' => array(array('firstname' => 'Vinodhagan', 'lastname' => 'Thangarajan', 'email' => 'dhanavel237vino@gmail.com')),
-                             'marketplace_gifts' => array(array('id' => 390, 'price_in_cents' => 500)),
+                             'marketplace_gifts' => array(array('id' => 390, 'price_in_cents' => 1000)),
 							 'expiry' => date('Y-m-d', strtotime('next month')),
+							 'gift_template' => 'XJUPY',
+							 'delivery_type' => 'SHORTLINK',
                              'id' => time()
                             );
 			echo json_encode($data_string, JSON_NUMERIC_CHECK);				

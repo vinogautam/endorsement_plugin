@@ -344,7 +344,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 		
 	}
 	
-	public function send_invitation_mail($info, $endorser, $id){
+	public function send_invitation_mail($info, $endorser, $id, $content){
 					
 		global $current_user, $wpdb;
 		
@@ -355,13 +355,13 @@ Let me know if you have any questions,", ET_DOMAIN);
 		{
 			$res = $wpdb->get_row("select * from ".$wpdb->prefix . "mailtemplates where id=".$endorser_letter);
 			$subject = isset($res->subject) ? $res->subject : $data['subject'];
-			$content = isset($res->content) ? $res->content : $data['content'];
+			//$content = isset($res->content) ? $res->content : $data['content'];
 			$pagelink = isset($res->page) ? $res->page : get_option('ENDORSEMENT_FRONT_END');
 		}
 		else
 		{
 			$subject = $data['subject'];
-			$content = $data['content'];
+			//$content = $data['content'];
 			$pagelink = get_option('ENDORSEMENT_FRONT_END');
 		}
 		

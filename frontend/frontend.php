@@ -93,7 +93,7 @@ Class NTM_Frontend
 				<form name="myform" method="post" >
 					<textarea name="contact_list" id="contact_list" rows="5" cols="73"></textarea>
 					<br><br>
-					<textarea cols="80" id="editor" name="" rows="10"><?php _e($mailtemplate);?></textarea>
+					<textarea cols="80" id="editor" name="endorse_letter" rows="10"><?php _e($mailtemplate);?></textarea>
 					<script>
 						CKEDITOR.replace( 'editor' );
 						function addcontact($){
@@ -120,85 +120,67 @@ Class NTM_Frontend
 	
 	function select_vendor($id){
 		global $wpdb;
-		/* $result = $wpdb->get_row("select * from ".$wpdb->prefix . "gift_transaction where gift_sent is null and id = ".$id);
-		
+		$result = $wpdb->get_row("select * from ".$wpdb->prefix . "gift_transaction where gift_sent is null and id = ".$id);
+		//echo base64_encode(base64_encode(2));
 		if(!count($result))
 		{
 			echo "Already used this gift!!";
 			return;
-		} */
+		}
 		$option = get_option('giftbit');
 		
 		$headers = array('Authorization: Bearer '.$option['api']);
 		
 		$region = get_option('giftbitregion');
-		$amount = 500;
-		if(isset($_POST['vendor'])){
-			//echo "https://testbedapp.giftbit.com/papi/v1/marketplace/?region=".$region."&category=".$_POST['category'];
+		$amount = $result->amout * 100;
+		$user_info = get_userdata($result->endorser_id);
+		if(isset($_POST['gifts']))
+		{
+					$headers = array('Authorization: Bearer ' . $option['api'], 'Accept: application/json', 'Content-Type: application/json');
+					$data_string = array(
+									 'subject' => 'Endorser Gift',
+									 'message' => 'Test message',
+									 'contacts' => array(array('firstname' => get_user_meta( $result->endorser_id, 'first_name', true), 'lastname' => get_user_meta( $result->endorser_id, 'first_name', true), 'email' => $user_info->user_email)),
+									 'marketplace_gifts' => array(array('id' => $_POST['gifts'], 'price_in_cents' => $amount)),
+									 'expiry' => date('Y-m-d', strtotime('+6 months')),
+									 'gift_template' => 'XJUPY',
+									 'delivery_type' => 'SHORTLINK',
+									 'id' => time()
+									);
+					echo json_encode($data_string);				
+					if(isset($option['sandbox']))
+						$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/campaign");
+					else	
+						$ch = curl_init("https://api.giftbit.com/papi/v1/campaign");
+					curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+					curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+					curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data_string));
+					curl_setopt($ch, CURLOPT_POST, 1);
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+					$curl_response2 = curl_exec($ch);
+					curl_close($ch);
+					
+					$status = true;
+					
+					//echo '<pre>'; print_r(json_decode($curl_response2));
+					
+					$giftbitref_id = json_decode($curl_response2)->campaign->uuid;
+					
+					$wpdb->update($wpdb->prefix . "gift_transaction", array('gift_sent' => 1, 'giftbitref_id' => $giftbitref_id), array('id' => $id));
+		}
+		else
+		{
 			if(isset($option['sandbox']))
-				$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/marketplace/?prices_in_cents=".$amount."&region=".$region."&category=".$_POST['category']);
+				$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/marketplace/?min_price_in_cents=".$amount."&max_price_in_cents=".$amount."&region=".$region);
 			else	
-				$ch = curl_init("https://api.giftbit.com/papi/v1/marketplace/?prices_in_cents=".$amount."&region=".$region."&category=".$_POST['category']);
+				$ch = curl_init("https://api.giftbit.com/papi/v1/marketplace/?min_price_in_cents=".$amount."&max_price_in_cents=".$amount."&region=".$region);
+			
 			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			$curl_response3 = curl_exec($ch);
 			curl_close($ch);
-			
-			echo "<pre>";print_r(json_decode($curl_response3));exit;
-			
-			
 		}
-		else
-		{
-			
-			/*if(isset($option['sandbox']))
-				$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/marketplace/category/");
-			else	
-				$ch = curl_init("https://api.giftbit.com/papi/v1/marketplace/category/");
-			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			$curl_response1 = curl_exec($ch);
-			curl_close($ch);
-		
-			if(isset($option['sandbox']))
-				$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/marketplace/vendors");
-			else	
-				$ch = curl_init("https://api.giftbit.com/papi/v1/marketplace/vendors");
-			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			$curl_response2 = curl_exec($ch);
-			curl_close($ch);*/ 
-			
-			$data_string = array(
-                             'subject' => 'Test Message',
-                             'message' => 'Test message',
-                             'contacts' => array(array('firstname' => 'Vinodhagan', 'lastname' => 'Thangarajan', 'email' => 'dhanavel237vino@gmail.com')),
-                             'marketplace_gifts' => array(array('id' => 390, 'price_in_cents' => 1000)),
-							 'expiry' => date('Y-m-d', strtotime('next month')),
-							 'gift_template' => 'XJUPY',
-							 'delivery_type' => 'SHORTLINK',
-                             'id' => time()
-                            );
-			echo json_encode($data_string, JSON_NUMERIC_CHECK);				
-			if(isset($option['sandbox']))
-				$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/campaign");
-			else	
-				$ch = curl_init("https://api.giftbit.com/papi/v1/campaign");
-			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data_string, JSON_NUMERIC_CHECK));
-			curl_setopt($ch, CURLOPT_POST, 1);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			$curl_response2 = curl_exec($ch);
-			curl_close($ch);
-			echo '<pre>';print_r($curl_response2);echo '</pre>';
-		
-		}
-		
-		
 		?>
 		
 		<div id="poststuff" class="wrap">
@@ -206,25 +188,24 @@ Class NTM_Frontend
 			<div id="message" class="updated"><p>Your invitation sent successfully.</p></div>
 			<?php }?>
 				<p>Welcome <?php echo get_user_meta( $result->endorser_id, 'first_name', true).' '.get_user_meta($result->endorser_id, 'last_name', true);?></p>
+				<p>Your gift amount : <b>$ <?php _e($result->amout);?></b></p>
 				<div class="postbox">
 					<div class="inside group">
 						<form name="myform" method="post" >
-							<!--<p>
-								<label>Select Category</label>
-								<select name="category" >
-									<?php //foreach(json_decode($curl_response1)->categories as $res){?>
-									<option value="<?php _e($res->id);?>"><?php _e($res->name);?></option>
-									<?php //}?>
-								</select>
-							</p>-->
+							<?php if(count(json_decode($curl_response3)->marketplace_gifts)){?>
 							<ul>
-								<?php foreach(json_decode($curl_response2)->vendors as $res){?>
+								<?php foreach(json_decode($curl_response3)->marketplace_gifts as $res){?>
 								<li>
-									<input onchange="document.myform.submit();" id="vendor_<?php _e($res->id);?>" value="<?php _e($res->id);?>" type="radio" name="vendor">
-									<label for="vendor_<?php _e($res->id);?>"><img width="100" src="<?php _e($res->image_url);?>"></label>
+									<input onchange="document.myform.submit();" id="vendor_<?php _e($res->id);?>" value="<?php _e($res->id);?>" type="radio" name="gifts">
+									<label for="vendor_<?php _e($res->id);?>"><img alt="<?php _e($res->name);?>" title="<?php _e($res->name);?>" width="100" src="<?php _e($res->image_url);?>"></label>
 								</li>
 								<?php }?>
 							</ul>
+							<?php }elseif(isset($status)){?>
+							<p>Gift Send Successfully</p>
+							<?php }else{?>
+							<p>No Gifts Available now. Please Try again later!!</p>
+							<?php }?>
 						</form>
 					</div>
 				</div>
@@ -255,7 +236,7 @@ Class NTM_Frontend
 		if(isset($_POST['send_invitation']))
 		{
 			$contact_list = explode(",", $_POST['contact_list']);
-			
+			$endorse_letter = $_POST['endorse_letter'];
 			foreach($contact_list as $res)
 			{
 				$ex1 = explode("<", $res);
@@ -269,7 +250,7 @@ Class NTM_Frontend
 					"tracker_id" => wp_generate_password( $length=12, $include_standard_special_chars=false )
 				);
 				$wpdb->insert($wpdb->prefix . "endorsements", $info);
-				$ntm_mail->send_invitation_mail($info, $current_user->ID, $wpdb->insert_id);
+				$ntm_mail->send_invitation_mail($info, $current_user->ID, $wpdb->insert_id, $endorse_letter);
 			}
 			
 			update_user_meta($current_user->ID, "invitation_sent", (get_user_meta($current_user->ID, "invitation_sent", true) + count($contact_list)));

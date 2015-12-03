@@ -206,20 +206,29 @@ class Endorsements_admin{
 		}
 		
 		?>
-		<form method="post" action="<?php admin_url( 'admin.php?page=ntmEndorsements' ); ?>">
-			<table class="form-table">
+		<script type='text/javascript' src='<?php _e(NTM_PLUGIN_URL);?>/assets/js/jquery.validate.min.js'></script>
+		<script>
+			jQuery(document).ready(function(){
+				jQuery("#endorser_form").validate();
+			})
+		</script>
+		<style>
+		.error{color:red;}
+		</style>
+		<form id="endorser_form" method="post" action="<?php admin_url( 'admin.php?page=ntmEndorsements' ); ?>">
+			<table  class="form-table">
 				<tbody>
 					<tr>
 						<th scope="row"><label for="blogname">Firstname</label></th>
-						<td><input type="text" class="regular-text" value="<?php echo isset($usermeta) ? $usermeta['first_name'][0]: '';?>" id="blogname" name="user[first_name]"></td>
+						<td><input required type="text" class="regular-text" value="<?php echo isset($usermeta) ? $usermeta['first_name'][0]: '';?>"  name="user[first_name]"></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="blogname">Lastname</label></th>
-						<td><input type="text" class="regular-text" value="<?php echo isset($usermeta) ? $usermeta['last_name'][0]: '';?>" id="blogname" name="user[last_name]"></td>
+						<td><input required type="text" class="regular-text" value="<?php echo isset($usermeta) ? $usermeta['last_name'][0]: '';?>"  name="user[last_name]"></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="blogname">Email</label></th>
-						<td><input type="text" class="regular-text" <?php echo isset($user) ? 'disabled' : '';?> value="<?php echo isset($user) ? $user->user_email: '';?>" id="blogname" name="user[user_email]"></td>
+						<td><input required type="text" class="regular-text" <?php echo isset($user) ? 'disabled' : '';?> value="<?php echo isset($user) ? $user->user_email: '';?>"  name="user[user_email]"></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="blogname">Endorser Letter</label></th>
@@ -291,7 +300,16 @@ class Endorsements_admin{
 				});
 			});
 		</script>
-		<form method="post" action="<?php admin_url( 'admin.php?page=ntmEndorsements' ); ?>">
+		<script type='text/javascript' src='<?php _e(NTM_PLUGIN_URL);?>/assets/js/jquery.validate.min.js'></script>
+		<script>
+			jQuery(document).ready(function(){
+				jQuery("#template_form").validate();
+			})
+		</script>
+		<style>
+		.error{color:red;}
+		</style>
+		<form id="template_form" method="post" action="<?php admin_url( 'admin.php?page=ntmEndorsements' ); ?>">
 			<table class="form-table">
 				<tbody>
 					<tr>
@@ -304,7 +322,7 @@ class Endorsements_admin{
 					</tr>
 					<tr id="landing_page" style="display:<?php echo isset($template) && $template->type == 'Endorsement' ? '' : 'none';?>">
 						<th scope="row"><label for="blogname">Landing page</label></th>
-						<td><select name="letter[page]"> 
+						<td><select  name="letter[page]"> 
 							 <option value="">
 							<?php echo esc_attr( __( 'Select page' ) ); ?></option> 
 							 <?php 
@@ -322,16 +340,16 @@ class Endorsements_admin{
 					</tr>
 					<tr>
 						<th scope="row"><label for="blogname">Letter Name</label></th>
-						<td><input type="text" class="regular-text" value="<?php echo isset($template) ? $template->name: '';?>" id="blogname" name="letter[name]"></td>
+						<td><input required type="text" class="regular-text" value="<?php echo isset($template) ? $template->name: '';?>" name="letter[name]"></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="blogname">Subject</label></th>
-						<td><input type="text" class="regular-text" value="<?php echo isset($template) ? $template->subject: '';?>" id="blogname" name="letter[subject]"></td>
+						<td><input required type="text" class="regular-text" value="<?php echo isset($template) ? $template->subject: '';?>"  name="letter[subject]"></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="blogname">Content</label></th>
 						<td>
-							<textarea cols="80" id="editor" rows="10" name="letter[content]"><?php echo isset($template) ? $template->content: '';?></textarea>
+							<textarea required cols="80" id="editor" rows="10" name="letter[content]"><?php echo isset($template) ? $template->content: '';?></textarea>
 							<script>
 								CKEDITOR.replace( 'editor' );
 							</script>
@@ -620,9 +638,9 @@ class Endorsements_admin{
 		$headers = array('Authorization: Bearer '.$option['api']);
 		
 		if(isset($option['sandbox']))
-			$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/marketplace/regions");
+			$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/marketplace/region");
 		else	
-			$ch = curl_init("https://api.giftbit.com/papi/v1/marketplace/regions");
+			$ch = curl_init("https://api.giftbit.com/papi/v1/marketplace/region");
 		
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);

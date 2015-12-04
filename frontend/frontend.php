@@ -147,7 +147,7 @@ Class NTM_Frontend
 									 'delivery_type' => 'SHORTLINK',
 									 'id' => time()
 									);
-					echo json_encode($data_string);				
+					//echo json_encode($data_string);				
 					if(isset($option['sandbox']))
 						$ch = curl_init("https://testbedapp.giftbit.com/papi/v1/campaign");
 					else	

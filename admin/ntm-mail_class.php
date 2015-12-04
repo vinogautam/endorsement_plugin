@@ -22,6 +22,14 @@ class NTM_mail_template{
 			case 'gift_mail':
 
 				return $this->set_gift_mail ( $new_value,'', true );
+				
+			case 'regift_mail':
+
+				return $this->set_regift_mail ( $new_value,'', true );
+				
+			case 'manualgift_mail':
+
+				return $this->set_manualgift_mail ( $new_value,'', true );
 			
 			default:
 
@@ -250,6 +258,45 @@ Let me know if you have any questions,", ET_DOMAIN);
 		update_option('regift_mail', $new_value);
 		
 		update_option('regift_mail_subject', $subject);
+
+		return array('content' => $new_value, 'subject' => $subject);
+
+	}
+	
+	public function get_manualgift_mail ( ) {
+
+
+		$default	=	__("Hi [ENDORSER], Your agent resend gift for your converted endorsement. Please click below link and select your vendor. 
+			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", ET_DOMAIN);
+
+		$content = get_option('manualgift_mail');
+		
+		$subject = get_option('manualgift_mail_subject');
+		
+		if($content)
+		$return = array('content' => $content, 'subject' => $subject);
+		else
+		$return = array('content' => $default, 'subject' => 'Get Bonus Gift');
+		
+		return $return;
+
+	}
+
+	
+
+	public function set_manualgift_mail ( $new_value, $subject, $default ) {
+
+		if($default) {
+
+			$new_value	=	__("Hi [ENDORSER], Your agent resend gift for your converted endorsement. Please click below link and select your vendor. 
+			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", ET_DOMAIN);
+		
+			$subject = 'Get Bonus Gift';
+		}
+
+		update_option('manualgift_mail', $new_value);
+		
+		update_option('manualgift_mail_subject', $subject);
 
 		return array('content' => $new_value, 'subject' => $subject);
 

@@ -13,11 +13,18 @@ class Endorsements_admin{
             add_menu_page( 'Endorsements', 'Endorsements', 'manage_options', 'ntmEndorsements', array( $this, 'create_ntmadmin_page' ));
 			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Add Endorser',  9, 'ntmEndorsements&tab=add_endorsers', array( &$this, 'mail_template'));
 			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Email Template',  9, 'mail_template', array( &$this, 'mail_template'));
+			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Send Gift By Manual',  9, 'send_gift_manual', array( &$this, 'send_gift_manual'));
+			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Gift Transaction History',  9, 'gift_transaction_history', array( &$this, 'gift_transaction_history'));
 			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Settings',  9, 'ntmEndorsements_settings', array( &$this, 'settingsPage'));		
         
         } else {
             
-            //add_menu_page( 'Endorsements', 'Endorsements', 'editor', 'ntmEndorsements', array( $this, 'create_ntmadvisors_page' ));  
+            add_menu_page( 'Endorsements', 'Endorsements', 'manage_options', 'ntmEndorsements', array( $this, 'create_ntmadmin_page' ));
+			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Add Endorser',  9, 'ntmEndorsements&tab=add_endorsers', array( &$this, 'mail_template'));
+			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Email Template',  9, 'mail_template', array( &$this, 'mail_template'));
+			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Send Gift By Manual',  9, 'send_gift_manual', array( &$this, 'send_gift_manual'));
+			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Gift Transaction History',  9, 'gift_transaction_history', array( &$this, 'gift_transaction_history'));
+			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Settings',  9, 'ntmEndorsements_settings', array( &$this, 'settingsPage'));  
         
         }
    
@@ -376,7 +383,9 @@ class Endorsements_admin{
 			
 			'gift_mail'		=> 	 "Gift Conversion Email template",
 			
-			'regift_mail'		=> 	 "ReSend Gift Email template"
+			'regift_mail'		=> 	 "ReSend Gift Email template",
+			
+			'manualgift_mail'		=> 	 "Manual Gift Email template"
 
 		);
 	
@@ -395,6 +404,8 @@ class Endorsements_admin{
 		
 		$ntm_mail->set_regift_mail ($_POST['regift_mail'],$_POST['regift_mail_subject'],false);
 		
+		$ntm_mail->set_manualgift_mail ($_POST['manualgift_mail'],$_POST['manualgift_mail_subject'],false);
+		
 	}
 	elseif(isset($_GET['reset']))
 	{
@@ -412,6 +423,8 @@ class Endorsements_admin{
 		$get_mail[] 	 	= 	$ntm_mail->get_gift_mail ();
 		
 		$get_mail[] 	 	= 	$ntm_mail->get_regift_mail ();
+		
+		$get_mail[] 	 	= 	$ntm_mail->get_manualgift_mail ();
 		
 	?>
     <link rel="stylesheet" type="text/css" href="<?php _e(NTM_PLUGIN_URL);?>/assets/css/ckeditor.css" media="all" />
@@ -468,7 +481,8 @@ class Endorsements_admin{
 							'amout' => $_POST['gift_amount'],
 							'fb_count'	=> get_user_meta($_POST['id'], "tracked_fb_counter", true),
 							'twitter_count'	=> get_user_meta($_POST['id'], "tracked_tw_counter", true),
-							"agent_id" => $current_user->ID
+							"agent_id" => $current_user->ID,
+							'created'	=> date("Y-m-d H:i:s")
 							);
 			$wpdb->insert($wpdb->prefix . "gift_transaction", $data);
 			$gift_id = $wpdb->insert_id;
@@ -494,7 +508,9 @@ class Endorsements_admin{
 		{
 			$data = array(
 							'endorser_id' =>$_POST['endorser_id'],
-							'amout' => $_POST['gift_amount']
+							'amout' => $_POST['gift_amount'],
+							'agent_id' => get_current_user_id(),
+							'created'	=> date("Y-m-d H:i:s")
 							);
 			$wpdb->insert($wpdb->prefix . "gift_transaction", $data);
 			$gift_id = $wpdb->insert_id;
@@ -508,7 +524,7 @@ class Endorsements_admin{
 								);
 				$wpdb->update($wpdb->prefix . "endorsements", array('gift_status' => 2), array('id' => $res->id));
 			}
-			$ntm_mail->send_gift_mail('get_gift_mail', $_POST['endorser_id'], $gift_id);
+			$ntm_mail->send_gift_mail('get_regift_mail', $_POST['endorser_id'], $gift_id);
 		}
 		elseif(isset($_POST['submit']) && isset($_GET['edit']))
 		{
@@ -742,7 +758,95 @@ class Endorsements_admin{
 			update_option('twitter_text', $_POST['twitter_text']);
 		}
 	}
-        
+	
+	public function send_gift_manual()
+	{
+		global $wpdb, $ntm_mail;
+		if(isset($_POST['send_gift']))
+		{
+			$data = array(
+							'endorser_id' =>$_POST['endorser_id'],
+							'amout' => $_POST['gift_amount'],
+							'agent_id' => get_current_user_id(),
+							'created'	=> date("Y-m-d H:i:s")
+							);
+			$wpdb->insert($wpdb->prefix . "gift_transaction", $data);
+			$gift_id = $wpdb->insert_id;
+			$ntm_mail->send_gift_mail('get_manualgift_mail', $_POST['endorser_id'], $gift_id);
+			
+			$message = "Gift send successfully!!";
+		}
+		//print_r(get_users(array('role'=>'endorser')));
+		?>
+		<div id="poststuff" class="wrap">
+		<h2>Send Gift By Manual</h2>
+		<?php if(isset($message)){?>
+		<div id="message" class="updated"><p><?php echo $message;?></p></div>
+		<?php }?>
+			<div class="postbox">
+				<div class="inside group">
+					<form name="myform" method="post" >
+					<table id="country" class="form-table">
+						<tr>
+							<th scope="row"><label for="blogname">Endorser</label></th>
+							<td>
+								<select class="regular-text" name="endorser_id">
+									<option value="">Select Endorser</option>
+									<?php 
+									foreach(get_users(array('role'=>'endorser')) as $res){?>
+									<option value="<?php _e($res->data->ID);?>"><?php _e($res->data->user_login.' - '.$res->data->user_email);?></option>
+									<?php }?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="blogname">Gift Amount</label></th>
+							<td>
+								<select class="regular-text" name="gift_amount">
+									<option value="5">5$</option>
+									<option value="10">10$</option>
+									<option value="25">25$</option>
+									<option value="50">50$</option>
+									<option value="100">100$</option>
+									<option value="150">150$</option>
+									<option value="200">200$</option>
+								</select>
+							</td>
+						</tr>
+					</table>
+					<p class="submit">
+						<input name="send_gift" class="button-primary seeker_btn" value="<?php _e('Save Changes'); ?>" type="submit" />
+					</p>
+					</form>
+				</div>
+			</div>
+		</div> 
+		<?php
+	}
+    
+	function gift_transaction_history()
+	{
+		
+		?>
+		<div id="poststuff" class="wrap">
+		<h2>Gift Transaction History</h2>
+		
+			<div class="postbox">
+				<div class="inside group">
+					<form name="myform" method="post" >
+						<link rel="stylesheet" href="<?php _e(NTM_PLUGIN_URL);?>/assets/css/colorbox.css" />
+						<script src="<?php _e(NTM_PLUGIN_URL);?>/assets/js/jquery.colorbox-min.js"></script>
+						<?php
+							$endosersTable = new GiftTable();
+							$endosersTable->prepare_items();
+							$endosersTable->display();
+						?>
+					</form>
+				</div>
+			</div>
+		</div> 
+		<?php
+	}
 } //end class endorsements
      
    

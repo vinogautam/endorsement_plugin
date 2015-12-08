@@ -55,10 +55,11 @@ class Endorsements_admin{
     {   global $pagenow, $current_user, $ntm_mail;
 		if ( isset ( $_GET['tab'] ) ) $current = $_GET['tab']; else $current = 'endorsers';
 		
-		$tabs = array( 'endorsers' => 'Endorsers', 'add_endorsers' => 'Add New Endorsers', 'template_list' => 'Letter Template', 'add_template' => 'Add New Template', 'endorsement' => 'Endorsement');
+		$tabs = array( 'endorsers' => 'Endorsers', 'add_endorsers' => 'Add New Endorsers', 'add_endorsers_cloudsponge' => 'Invite Endorser by cloudsponge', 'template_list' => 'Letter Template', 'add_template' => 'Add New Template', 'endorsement' => 'Endorsement');
 		$current_page = $tabs[$current];
 		$current_tab = $current.'_page';
 		
+		if($current != 'add_endorsers_cloudsponge')
 		$error = $this->post_actions();
 		
 		?>
@@ -262,6 +263,141 @@ class Endorsements_admin{
 		<?php
 	}
 	
+	public function add_endorsers_cloudsponge_page()
+    {
+		global $wpdb, $ntm_mail;
+		
+		if(isset($_POST['submit']))
+		{
+			$contact_list = explode(",", $_POST['contact_list']);
+			$endorse_letter = $_POST['endorse_letter'];
+			foreach($contact_list as $res)
+			{
+				$ex1 = explode("<", $res);
+				$ex2 = explode(">", $ex1[1]);
+				
+				$user = array();
+				$user['role'] = 'endorser';
+				$user['user_login'] = strtolower(str_replace(" ", "_", $ex1[0]));
+				$user['user_email'] = $ex2[0];
+				
+				$user_id = username_exists( $user['user_login'] );
+				if ( !$user_id and email_exists($user['user_email']) == false ) {
+					$user['user_pass'] = wp_generate_password( $length=12, $include_standard_special_chars=false );
+					$user_id = wp_insert_user( $user ) ;
+					if (  !is_wp_error( $user_id ) )
+					{
+						update_user_meta( $user_id, 'imcomplete_profile', 1);
+						$ntm_mail->send_welcome_mail($user['user_email'], $user_id, $user['user_login'].'#'.$user['user_pass'], $_POST['endorser']);
+						$ntm_mail->send_notification_mail($user_id);
+					}
+				} 
+			}
+		}
+		
+		?>
+		<script type='text/javascript' src='<?php _e(NTM_PLUGIN_URL);?>/assets/js/jquery.validate.min.js'></script>
+		<script>
+			jQuery(document).ready(function(){
+				jQuery("#endorser_form").validate();
+			})
+		</script>
+		<script>
+	  (function(u){
+		var d=document,s='script',a=d.createElement(s),m=d.getElementsByTagName(s)[0];
+		a.async=1;a.src=u;m.parentNode.insertBefore(a,m);
+	  })('//api.cloudsponge.com/widget/<?php echo get_option('cloudsponge');?>.js');
+	  window.csPageOptions = { 
+				textarea_id: "contact_list" ,
+				skipSourceMenu:true, // suppresses the source menu unless linked to directly
+			  // delay making the links that launch a popup clickable
+			  // until after the widget has initialized completly. a popup window must 
+			  // be opened in an onclick handler, so we don't support queueing these actions
+			  afterInit:function() {
+				var i, links = document.getElementsByClassName('delayed');
+				for (i = 0; i < links.length; i++) {
+				  // make the links that launch a popup clickable by setting the href property
+				  links[i].href = "#";
+				}
+
+				// if this is not a mobile browser, we can show and enable the desktop-only links
+				if (!cloudsponge.mobile) {
+				  links = document.getElementsByClassName('desktop-only');
+				  for (i = 0; i < links.length; i++) {
+					// show it
+					links[i].style.display = "";
+					// make it clickable
+					links[i].href = "#";
+				  }
+				}
+			  }
+		};
+		function addcontact($){
+			if(!$("#contactemail").val())
+				return false;
+			contact = $("#contactname").val()+' <'+$("#contactemail").val()+'>';
+			if($.trim($("#contact_list").val()))
+				$("#contact_list").val($("#contact_list").val()+', '+contact);
+			else
+				$("#contact_list").val(contact);
+							
+			$("#contactname").val('');
+			$("#contactemail").val('');
+		}
+	</script>
+		<style>
+		.error{color:red;}
+		</style>
+		
+		<table  class="form-table">
+				<tbody>
+					<tr>
+						<th scope="row"><label for="blogname">Social links</label></th>
+						<td colspan="2" scope="row">
+							<label for="blogname">
+								<div class="social_button">
+									<a class="deep-link desktop-only" style="display: none;" onclick="return cloudsponge.launch('linkedin');"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/linkedin.png"/></a>
+									<a class="deep-link delayed" onclick="return cloudsponge.launch('yahoo');"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/yahoo.png"/></a>
+									<a class="deep-link delayed" onclick="return cloudsponge.launch('windowslive');"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/outlook.com.png"/></a>
+									<a class="deep-link delayed" onclick="return cloudsponge.launch('gmail');"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/gmail.png"/></a>
+									<a class="deep-link delayed" onclick="return cloudsponge.launch('aol');"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/aol.png"/></a>
+									<a href="#" class="deep-link" onclick="return cloudsponge.launch('plaxo');"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/plaxo.png"/></a>
+									<a class="deep-link desktop-only" style="display: none;" onclick="return cloudsponge.launch('addressbook');"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/apple-desktop.png"/></a>
+									<a class="deep-link desktop-only" style="display: none;" onclick="return cloudsponge.launch('outlook');"><img src="<?php _e(plugin_dir_url( __FILE__ ));?>../icon-set/outlook-desktop.png"/></a>
+								</div>
+								<span>Or</span>
+								<p>Add Contact directly</p>
+								<p>Name: <input type="text" id="contactname">Email: <input type="email" id="contactemail"><button onclick="addcontact(jQuery);">Add</button></p>
+							</label>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<form id="endorser_form" method="post" >
+			<table  class="form-table">
+				<tbody>
+					<tr>
+						<th scope="row"><label for="blogname">Contact list</label></th>
+						<td><textarea readonly required name="contact_list" id="contact_list" rows="5" cols="73"></textarea></td>
+					</tr>
+					<?php 
+						$mailtemplate 	 	= 	$ntm_mail->get_endorser_invitation_mail();
+					?>
+					<tr>
+						<th scope="row"><label for="blogname">Invitation subject</label></th>
+						<td><input name="endorser[subject]" class="regular-text" value="<?php echo $mailtemplate['subject']; ?>"></td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="blogname">Invitation template</label></th>
+						<td><?php echo wp_editor($mailtemplate['content'], 'endorser_letter', array('textarea_name' => 'endorser[content]', 'editor_height' => 200));?></td>
+					</tr>
+				</tbody>
+			</table>
+			<?php submit_button();?>
+		</form>
+		<?php
+	}
+	
 	public function template_list_page()
     {
 		?>
@@ -295,8 +431,6 @@ class Endorsements_admin{
 		if(isset($_GET['edit']))
 			$template = $wpdb->get_row("select * from ".$wpdb->prefix . "mailtemplates where id='".$_GET['edit']."'");
 		?>
-		<link rel="stylesheet" type="text/css" href="<?php _e(NTM_PLUGIN_URL);?>/assets/css/ckeditor.css" media="all" />
-		<script type='text/javascript' src='<?php _e(NTM_PLUGIN_URL);?>/assets/js/ckeditor/ckeditor.js'></script>
 		<script>
 			jQuery(document).ready(function(){
 				jQuery("#ltype").change(function(){
@@ -356,10 +490,7 @@ class Endorsements_admin{
 					<tr>
 						<th scope="row"><label for="blogname">Content</label></th>
 						<td>
-							<textarea required cols="80" id="editor" rows="10" name="letter[content]"><?php echo isset($template) ? $template->content: '';?></textarea>
-							<script>
-								CKEDITOR.replace( 'editor' );
-							</script>
+							<?php echo wp_editor(isset($template) ? $template->content: '', 'editor', array('textarea_name' => 'letter[content]', 'editor_height' => 200));?>
 						</td>
 					</tr>
 				</tbody>
@@ -380,6 +511,8 @@ class Endorsements_admin{
 			'notification_mail' 		=>	 "New Endorser Notification to Admin Email template",
 
 			'invitation_mail'		=> 	 "Endorsement Invitation Email template",
+			
+			'endorser_invitation_mail'		=> 	 "Endorser Invitation Email template",
 			
 			'gift_mail'		=> 	 "Gift Conversion Email template",
 			
@@ -406,6 +539,8 @@ class Endorsements_admin{
 		
 		$ntm_mail->set_manualgift_mail ($_POST['manualgift_mail'],$_POST['manualgift_mail_subject'],false);
 		
+		$ntm_mail->set_endorser_invitation_mail ($_POST['endorser_invitation_mail'],$_POST['endorser_invitation_mail_subject'],false);
+		
 	}
 	elseif(isset($_GET['reset']))
 	{
@@ -420,11 +555,15 @@ class Endorsements_admin{
 		
 		$get_mail[] 	 	= 	$ntm_mail->get_invitation_mail ();
 		
+		$get_mail[] 	 	= 	$ntm_mail->get_endorser_invitation_mail();
+		
 		$get_mail[] 	 	= 	$ntm_mail->get_gift_mail ();
 		
 		$get_mail[] 	 	= 	$ntm_mail->get_regift_mail ();
 		
 		$get_mail[] 	 	= 	$ntm_mail->get_manualgift_mail ();
+		
+		
 		
 	?>
     <link rel="stylesheet" type="text/css" href="<?php _e(NTM_PLUGIN_URL);?>/assets/css/ckeditor.css" media="all" />

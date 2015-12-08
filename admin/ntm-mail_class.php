@@ -31,6 +31,10 @@ class NTM_mail_template{
 
 				return $this->set_manualgift_mail ( $new_value,'', true );
 			
+			case 'endorser_invitation_mail':
+
+				return $this->set_endorser_invitation_mail ( $new_value,'', true );
+			
 			default:
 
 				return 1;
@@ -39,7 +43,47 @@ class NTM_mail_template{
 
 	}
 
+	public function get_endorser_invitation_mail ( ) {
+
+		$default	=	__("<p>Hello [ENDORSER],</p><p> Invitation to join &nbsp;&nbsp;[SITE], cick auto link and join as endorser.<br> [AUTO_LOGIN_LINK]</p>
+							<p>Thank you and welcome to [SITE].</p>
+							<p>Referred Agent [AGENT]<p>
+							<p>[AGENT_EMAIL]<p>", ET_DOMAIN);
+		
+		$content = get_option('endorser_invitation_mail');
+		
+		$subject = get_option('endorser_invitation_mail_subject');
+		
+		if($content)
+		$return = array('content' => $content, 'subject' => $subject);
+		else
+		$return = array('content' => $default, 'subject' => 'Welcome Email');
+		
+		return $return;
+	}
+
 	
+
+	public function set_endorser_invitation_mail ( $new_value, $subject , $default ) {
+
+		if($default) {
+
+			$new_value	=	__("<p>Hello [ENDORSER],</p><p> Invitation to join &nbsp;&nbsp;[SITE], cick auto link and join as endorser.<br> [AUTO_LOGIN_LINK]</p>
+							<p>Thank you and welcome to [SITE].</p>
+							<p>Referred Agent [AGENT]<p>
+							<p>[AGENT_EMAIL]<p>", ET_DOMAIN);
+							
+			$subject = 'Welcome Email';
+
+		}
+
+		update_option('endorser_invitation_mail', $new_value);
+		
+		update_option('endorser_invitation_mail_subject', $subject);
+
+		return array('content' => $new_value, 'subject' => $subject);
+
+	}
 
 	public function get_welcome_mail ( ) {
 
@@ -314,7 +358,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 	}
 	
 	
-	public function send_welcome_mail($email, $user_id, $autologin){
+	public function send_welcome_mail($email, $user_id, $autologin, $data = array()){
 					
 		global $current_user, $wpdb;
 		
@@ -322,7 +366,7 @@ Let me know if you have any questions,", ET_DOMAIN);
       	
 		$username = $user_info->user_login;
 		
-		$data = $this->get_welcome_mail();
+		$data = count($data) ? $data : $this->get_welcome_mail();
 		
 		//print_r(get_permalink(get_option('ENDORSEMENT_FRONT_END')).'?autologin='.base64_encode(base64_encode($autologin)));
 		$endorser_letter = get_user_meta($user_id, 'endorser_letter', true);

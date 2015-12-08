@@ -168,6 +168,7 @@ class EndoserTable extends WP_List_Table {
 		$data = objectToArray(get_users(array('role'=>'endorser')));
         $newdat = array();
 		foreach($data as $v){
+			if(!get_user_meta($v['data']['ID'], 'imcomplete_profile', true))
 			$newdat[] = $v['data'];
 		}
 		$data = $newdat;

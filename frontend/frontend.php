@@ -28,7 +28,14 @@ Class NTM_Frontend
 			$mailtemplate 	 	= 	$ntm_mail->get_invitation_mail ();
 			$mailtemplate = $mailtemplate['content'];
 		}
-		$invitation_status = $this->frontend_action();
+		if(isset($_POST['join_endorser']))
+		{
+			update_user_meta($current_user->ID, 'first_name', $_POST['endorser_firstname']);
+			update_user_meta($current_user->ID, 'last_name', $_POST['endorser_lastname']);
+			update_user_meta($current_user->ID, 'imcomplete_profile', 0);
+		}
+		else
+			$invitation_status = $this->frontend_action();
 	?>
     <link rel="stylesheet" type="text/css" href="<?php _e(NTM_PLUGIN_URL);?>/assets/css/ckeditor.css" media="all" />
     <script type='text/javascript' src='<?php _e(NTM_PLUGIN_URL);?>/assets/js/ckeditor/ckeditor.js'></script>
@@ -67,6 +74,9 @@ Class NTM_Frontend
     <?php if($invitation_status){?>
     <div id="message" class="updated"><p>Your invitation sent successfully.</p></div>
     <?php }?>
+		
+		<?php if(!get_user_meta($current_user->ID, 'imcomplete_profile', true)){?>
+		
 		<p>Welcome <?php echo get_user_meta( $current_user->ID, 'first_name', true).' '.get_user_meta($current_user->ID, 'last_name', true);?></p>
 		<?php $res = $wpdb->get_row("select * from ".$wpdb->prefix . "mailtemplates where id=".(get_user_meta($current_user->ID, 'endorsement_letter', true) ? get_user_meta($current_user->ID, 'endorsement_letter', true) : 0)); ?><br>
 		<?php $pagelink = isset($res->page) ? $res->page : get_option('ENDORSEMENT_FRONT_END');?>
@@ -89,7 +99,7 @@ Class NTM_Frontend
 					</div>
 					<span>Or</span>
 					<p>Add Contact directly</p>
-					<p>Name: <input type="text" id="contactname">Email: <input type="email" id="contactemail"><button onclick="addcontact(jQuery);"></button></p>
+					<p>Name: <input type="text" id="contactname">Email: <input type="email" id="contactemail"><button onclick="addcontact(jQuery);">Add</button></p>
 				<form name="myform" method="post" >
 					<textarea name="contact_list" id="contact_list" rows="5" cols="73"></textarea>
 					<br><br>
@@ -97,6 +107,9 @@ Class NTM_Frontend
 					<script>
 						CKEDITOR.replace( 'editor' );
 						function addcontact($){
+							if(!$("#contactemail").val())
+								return false;
+							
 							contact = $("#contactname").val()+' <'+$("#contactemail").val()+'>';
 							if($.trim($("#contact_list").val()))
 								$("#contact_list").val($("#contact_list").val()+', '+contact);
@@ -114,6 +127,13 @@ Class NTM_Frontend
                 </form>
             </div>
         </div>
+		<?php }else{?>
+			<form method="post">
+				<p><label>Firstname</label> : <input type="text" name="endorser_firstname"></p>
+				<p><label>Lastname</label> : <input type="text" name="endorser_lastname"></p>
+				<input type="submit" name="join_endorser" value="Join">
+			</form>
+		<?php }?>
     </div>  
 	<?php 
 	}

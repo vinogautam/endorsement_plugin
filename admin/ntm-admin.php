@@ -843,6 +843,10 @@ class Endorsements_admin{
 			<table class="form-table">
 				<tbody>
 					<tr>
+						<th scope="row"><label for="blogname">Giftbit amount</label></th>
+						<td><input type="text" class="regular-text" value="<?php echo isset($option['amount']) ? $option['amount'] : '';?>" id="blogname" name="giftbit[amount]"></td>
+					</tr>
+					<tr>
 						<th scope="row"><label for="blogname">Api key</label></th>
 						<td><textarea rows="4" cols="80" name="giftbit[api]"><?php echo isset($option['api']) ? $option['api'] : '';?></textarea></td>
 					</tr>

@@ -921,7 +921,22 @@ class Endorsements_admin{
 		}
 		//print_r(get_users(array('role'=>'endorser')));
 		?>
-		<div id="poststuff" class="wrap">
+		
+		<script>
+			jQuery(document).ready(function(){
+				jQuery("#gift_amount").change(function(){
+					if(jQuery("#gift_amount").val() <= jQuery("#poststuff").data('amount'))
+						jQuery("#send_gift").show();
+					else
+					{
+						alert("Insufficient balance");
+						jQuery("#send_gift").hide();
+					}
+				});
+			});
+		</script>
+		
+		<div data-amount="<?php echo get_option('giftbit')['amount']?>" id="poststuff" class="wrap">
 		<h2>Send Gift By Manual</h2>
 		<?php if(isset($message)){?>
 		<div id="message" class="updated"><p><?php echo $message;?></p></div>
@@ -945,7 +960,7 @@ class Endorsements_admin{
 						<tr>
 							<th scope="row"><label for="blogname">Gift Amount</label></th>
 							<td>
-								<select class="regular-text" name="gift_amount">
+								<select class="regular-text" id="gift_amount" name="gift_amount">
 									<option value="5">5$</option>
 									<option value="10">10$</option>
 									<option value="25">25$</option>
@@ -958,7 +973,7 @@ class Endorsements_admin{
 						</tr>
 					</table>
 					<p class="submit">
-						<input name="send_gift" class="button-primary seeker_btn" value="<?php _e('Save Changes'); ?>" type="submit" />
+						<input style="display:none;" id="send_gift" name="send_gift" class="button-primary seeker_btn" value="<?php _e('Save Changes'); ?>" type="submit" />
 					</p>
 					</form>
 				</div>

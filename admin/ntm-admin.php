@@ -23,9 +23,6 @@ class Endorsements_admin{
 			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Add Endorser',  9, 'ntmEndorsements&tab=add_endorsers', array( &$this, 'mail_template'));
 			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Email Template',  9, 'mail_template', array( &$this, 'mail_template'));
 			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Send Gift By Manual',  9, 'send_gift_manual', array( &$this, 'send_gift_manual'));
-			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Gift Transaction History',  9, 'gift_transaction_history', array( &$this, 'gift_transaction_history'));
-			add_submenu_page( 'ntmEndorsements', 'Endorsements', 'Settings',  9, 'ntmEndorsements_settings', array( &$this, 'settingsPage'));  
-        
         }
    
     } //end ntme_admin_menu()
@@ -80,7 +77,7 @@ class Endorsements_admin{
 		?>
 		<link rel="stylesheet" href="<?php _e(NTM_PLUGIN_URL);?>/assets/css/colorbox.css" />
 		<script src="<?php _e(NTM_PLUGIN_URL);?>/assets/js/jquery.colorbox-min.js"></script>
-		<form method="post">
+		<form id='postdataendorser' data-amount="<?php echo get_option('giftbit')['amount']?>" method="post">
 		<?php
 			$endosersTable = new EndoserTable();
 			$endosersTable->prepare_items();
@@ -126,6 +123,31 @@ class Endorsements_admin{
 				});
 			});
 		</script>
+		<script>
+			jQuery(document).ready(function(){
+				jQuery("#resendgift").hide();
+				jQuery("#sendgift").hide();
+				jQuery("#gift_amount").change(function(){
+					if(jQuery("#gift_amount").val() <= jQuery("#postdataendorser").data('amount'))
+						jQuery("#sendgift").show();
+					else
+					{
+						alert("Insufficient balance");
+						jQuery("#sendgift").hide();
+					}
+				});
+				
+				jQuery("#resendgift_amount").change(function(){
+					if(jQuery("#resendgift_amount").val() <= jQuery("#postdataendorser").data('amount'))
+						jQuery("#resendgift").show();
+					else
+					{
+						alert("Insufficient balance");
+						jQuery("#resendgift").hide();
+					}
+				});
+			});
+		</script>
 		<div style='display:none'>
 			<div class="modalpopups" id='modalpopupnew' style='padding:10px; background:#fff;'>
 				<h2></h2>
@@ -145,7 +167,8 @@ class Endorsements_admin{
 							</tr>
 							<tr>
 								<th scope="row"><label for="blogname">Gift Amount</label></th>
-								<td><select class="regular-text" name="gift_amount">
+								<td><select class="regular-text" id="gift_amount" name="gift_amount">
+										<option value="">Select amount</option>
 										<option value="5">5$</option>
 										<option value="10">10$</option>
 										<option value="25">25$</option>
@@ -178,7 +201,8 @@ class Endorsements_admin{
 							</tr>
 							<tr>
 								<th scope="row"><label for="blogname">Gift Amount</label></th>
-								<td><select class="regular-text" name="gift_amount">
+								<td><select class="regular-text" id="resendgift_amount" name="gift_amount">
+										<option value="">Select amount</option>
 										<option value="5">5$</option>
 										<option value="10">10$</option>
 										<option value="25">25$</option>

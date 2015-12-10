@@ -931,17 +931,29 @@ class Endorsements_admin{
 		global $wpdb, $ntm_mail;
 		if(isset($_POST['send_gift']))
 		{
-			$data = array(
+			$option = get_option('giftbit');
+			
+			if($option['amount'] >= $_POST['gift_amount'])
+			{
+				$data = array(
 							'endorser_id' =>$_POST['endorser_id'],
 							'amout' => $_POST['gift_amount'],
 							'agent_id' => get_current_user_id(),
 							'created'	=> date("Y-m-d H:i:s")
 							);
-			$wpdb->insert($wpdb->prefix . "gift_transaction", $data);
-			$gift_id = $wpdb->insert_id;
-			$ntm_mail->send_gift_mail('get_manualgift_mail', $_POST['endorser_id'], $gift_id);
-			
-			$message = "Gift send successfully!!";
+				$wpdb->insert($wpdb->prefix . "gift_transaction", $data);
+				$gift_id = $wpdb->insert_id;
+				$ntm_mail->send_gift_mail('get_manualgift_mail', $_POST['endorser_id'], $gift_id);
+				
+				$option['amount'] = $option['amount'] - $_POST['gift_amount'];
+				update_option("giftbit", $option);
+				
+				$message = "Gift send successfully!!";
+			}
+			else
+			{
+				$message = "Error! Insufficient balance!";
+			}
 		}
 		//print_r(get_users(array('role'=>'endorser')));
 		?>

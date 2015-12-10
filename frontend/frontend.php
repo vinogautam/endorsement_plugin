@@ -180,6 +180,10 @@ Class NTM_Frontend
 					$curl_response2 = curl_exec($ch);
 					curl_close($ch);
 					
+					$option = get_option('giftbit');
+					$option['amount'] = $option['amount'] - $amount;
+					update_option("giftbit", $option);
+					
 					$status = true;
 					
 					//echo '<pre>'; print_r(json_decode($curl_response2));

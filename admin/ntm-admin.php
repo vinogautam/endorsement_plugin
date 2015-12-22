@@ -752,7 +752,7 @@ class Endorsements_admin{
     {   global $pagenow, $current_user, $ntm_mail;
 		if ( isset ( $_GET['tab'] ) ) $current = $_GET['tab']; else $current = 'settingsgeneral';
 		
-		$tabs = array('settingsgeneral' => 'General', 'cloudsponge' => 'Cloudsponge', 'giftbit' => 'Giftbit');
+		$tabs = array('settingsgeneral' => 'General', 'cloudsponge' => 'Cloudsponge', 'giftbit' => 'Giftbit', 'mandrill' => 'Mandrill');
 		$current_page = $tabs[$current];
 		$current_tab = $current.'_settings';
 		
@@ -805,6 +805,28 @@ class Endorsements_admin{
 				</tbody>
 			</table>
 			<?php submit_button('Save ', 'primary', 'cloudsponge-save');?>
+		</form>
+		<?php
+	}
+	
+	public function mandrill_settings()
+	{
+		$option = get_option('mandrill');
+		?>
+		<form method="post">
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th scope="row"><label for="blogname">Mandrill Email</label></th>
+						<td><input type="text" class="regular-text" value="<?php echo $option['email'];?>" id="blogname" name="mandrill[email]"></td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="blogname">Mandrill Api key</label></th>
+						<td><input type="text" class="regular-text" value="<?php echo $option['api'];?>" id="blogname" name="mandrill[api]"></td>
+					</tr>
+				</tbody>
+			</table>
+			<?php submit_button('Save ', 'primary', 'mandrill-save');?>
 		</form>
 		<?php
 	}
@@ -909,7 +931,11 @@ class Endorsements_admin{
 	
 	public function settings_actions()
 	{
-		if(isset($_POST['cloudsponge-save']))
+		if(isset($_POST['mandrill-save']))
+		{
+			update_option('mandrill', $_POST['mandrill']);
+		}
+		elseif(isset($_POST['cloudsponge-save']))
 		{
 			update_option('cloudsponge', $_POST['cloudsponge']);
 		}

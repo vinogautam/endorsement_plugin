@@ -396,7 +396,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 				
 		$message	=	$this->get_mail_template($content);
 					
-		if(wp_mail($email, $subject , $message, $headers))
+		if($this->mandrip_mail($email, $subject , $message, $headers))
 		return true;
 		else
 		return false;
@@ -428,7 +428,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 				
 		$message	=	$this->get_mail_template($content);
 					
-		if(wp_mail(get_option('admin_email'), $subject, $message, $headers))
+		if($this->mandrip_mail(get_option('admin_email'), $subject, $message, $headers))
 		return true;
 		else
 		return false;
@@ -469,7 +469,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 				
 		$message	=	$this->get_mail_template($content);
 					
-		if(wp_mail($info['email'], $subject , $message, $headers))
+		if($this->mandrip_mail($info['email'], $subject , $message, $headers))
 		return true;
 		else
 		return false;
@@ -502,9 +502,44 @@ Let me know if you have any questions,", ET_DOMAIN);
 				
 		$message	=	$this->get_mail_template($content);
 					
-		if(wp_mail($user_info->user_email, $subject , $message, $headers))
+		if($this->mandrip_mail($user_info->user_email, $subject , $message, $headers))
 		return true;
 		else
 		return false;
 	}
+	
+	function mandrip_mail($to, $subject , $message, $headers)
+	{
+		$option = get_option('mandrill');
+		
+		$mail = new PHPMailer;
+
+		$mail->IsSMTP();                                      // Set mailer to use SMTP
+		$mail->Host = 'smtp.mandrillapp.com';                 // Specify main and backup server
+		$mail->Port = 587;                                    // Set the SMTP port
+		$mail->SMTPAuth = true;                               // Enable SMTP authentication
+		$mail->Username = $option['email'];        // SMTP username
+		$mail->Password = $option['api'];           // SMTP password
+		$mail->SMTPSecure = 'tls';                            // Enable encryption, 'ssl' also accepted
+
+		$mail->From = 'neil@financialinsiders.ca';
+		$mail->FromName = 'FinancialInsiders.ca';
+		$mail->AddAddress($to);
+
+		$mail->IsHTML(true);                                  // Set email format to HTML
+
+		$mail->Subject = $subject;
+		$mail->Body    = $message;
+
+		if(!$mail->Send()) {
+		   /* echo 'Message could not be sent.';
+		   echo 'Mailer Error: ' . $mail->ErrorInfo;
+		   exit; */
+		   return false;
+		}
+
+		//echo 'Message has been sent';
+		return true;
+	}
+	
 }

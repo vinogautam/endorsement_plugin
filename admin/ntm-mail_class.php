@@ -468,8 +468,11 @@ Let me know if you have any questions,", ET_DOMAIN);
 		$headers .= "From: ".get_option('blogname')." < ".get_option('admin_email')."> \r\n";
 				
 		$message	=	$this->get_mail_template($content);
-					
-		if($this->mandrip_mail($info['email'], $subject , $message, $headers))
+		
+		$arr = array('name' => get_user_meta($endorser, 'first_name', true).' '.get_user_meta($endorser, 'last_name', true),
+					'email' => get_userdata($endorser)->user_email);
+		
+		if($this->mandrip_mail($info['email'], $subject , $message, $headers, $arr))
 		return true;
 		else
 		return false;
@@ -508,7 +511,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 		return false;
 	}
 	
-	function mandrip_mail($to, $subject , $message, $headers)
+	function mandrip_mail($to, $subject , $message, $headers, $arr=array())
 	{
 		$option = get_option('mandrill');
 		
@@ -522,8 +525,16 @@ Let me know if you have any questions,", ET_DOMAIN);
 		$mail->Password = $option['api'];           // SMTP password
 		$mail->SMTPSecure = 'tls';                            // Enable encryption, 'ssl' also accepted
 
-		$mail->From = 'neil@financialinsiders.ca';
-		$mail->FromName = 'FinancialInsiders.ca';
+		if(count($arr))
+		{
+			$mail->From = $arr['email'];
+			$mail->FromName = $arr['name'];
+		}
+		else
+		{
+			$mail->From = 'neil@financialinsiders.ca';
+			$mail->FromName = 'FinancialInsiders.ca';
+		}
 		$mail->AddAddress($to);
 
 		$mail->IsHTML(true);                                  // Set email format to HTML

@@ -143,6 +143,7 @@
 			  id int(11) NOT NULL AUTO_INCREMENT,
 			   created datetime NOT NULL,
 			   endorser_id int(11),
+			   lead_id int(11),
 			   agent_id int(11),
 			   gift_id tinytext NOT NULL,
 			   amout tinytext NOT NULL,

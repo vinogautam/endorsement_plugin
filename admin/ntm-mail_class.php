@@ -388,15 +388,12 @@ Let me know if you have any questions,", ET_DOMAIN);
 		$content 	=	str_ireplace('[AGENT_EMAIL]', $current_user->user_email, $content);				
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
 		
-		$headers  = 'MIME-Version: 1.0' . "\r\n";
-				
-		$headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
-				
-		$headers .= "From: ".get_option('blogname')." < ".get_option('admin_email')."> \r\n";
-				
+		
+		$fromName = get_option('blogname');
+		$fromEmail = get_option('admin_email');		
 		$message	=	$this->get_mail_template($content);
 					
-		if($this->mandrip_mail($email, $subject , $message, $headers))
+		if($this->send_mail($email, $subject , $message, $fromName, $fromEmail ))
 		return true;
 		else
 		return false;
@@ -420,15 +417,14 @@ Let me know if you have any questions,", ET_DOMAIN);
 		$content 	=	str_ireplace('[AGENT_EMAIL]', $current_user->user_email, $content);				
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
 		
-		$headers  = 'MIME-Version: 1.0' . "\r\n";
-				
-		$headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
-				
-		$headers .= "From: ".get_option('blogname')." < ".get_option('admin_email')."> \r\n";
-				
+		
+		
+		$fromName = get_option('blogname');
+		$fromEmail = get_option('admin_email');
+
 		$message	=	$this->get_mail_template($content);
 					
-		if($this->mandrip_mail(get_option('admin_email'), $subject, $message, $headers))
+		if($this->send_mail(get_option('admin_email'), $subject, $message, $fromName, $fromEmail))
 		return true;
 		else
 		return false;
@@ -461,24 +457,25 @@ Let me know if you have any questions,", ET_DOMAIN);
 		$content 	=	str_ireplace('[TRACK_LINK]', get_permalink($pagelink).'?ref='.base64_encode(base64_encode($id.'#&$#'.$endorser.'#&$#'.$info['tracker_id'])), $content);
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
 		
-		$headers  = 'MIME-Version: 1.0' . "\r\n";
+		//$headers  = 'MIME-Version: 1.0' . "\r\n";
 				
-		$headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
+		//$headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
 				
-		$headers .= "From: ".get_option('blogname')." < ".get_option('admin_email')."> \r\n";
-				
+		//$headers .= "From: ".get_option('blogname')." < ".get_option('admin_email')."> \r\n";
+		//$fromName = get_option('blogname');
+		//$fromEmail = get_option('admin_email');			
 		$message	=	$this->get_mail_template($content);
 		
 		$arr = array('name' => get_user_meta($endorser, 'first_name', true).' '.get_user_meta($endorser, 'last_name', true),
 					'email' => get_userdata($endorser)->user_email);
 		
-		if($this->mandrip_mail($info['email'], $subject , $message, $headers, $arr))
+		if($this->send_mail($info['email'], $subject , $message, $fromName=Null, $fromEmail=Null,  $arr))
 		return true;
 		else
 		return false;
 	}
 	
-	public function send_gift_mail($template, $user_id, $gift){
+	public function send_gift_mail($template, $user_id, $gift, $lead = 0){
 					
 		global $current_user, $wpdb;
 		
@@ -491,63 +488,78 @@ Let me know if you have any questions,", ET_DOMAIN);
 		$subject = $data['subject'];
 		$content = $data['content'];
 		
-		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
+		if($lead)
+		{
+			$lead = $wpdb->get_row("select * from ".$wpdb->prefix . "leads where id =" . $user_id);
+			$content 	=	str_ireplace('[ENDORSER]', $lead->first_name.' '.$lead->last_name, $content);
+		}
+		else
+			$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
+		
 		$content 	=	str_ireplace('[SELECT_VENDOR_LINK]', get_permalink(get_option('ENDORSEMENT_FRONT_END')).'?gift='.base64_encode(base64_encode($gift)), $content);
 		$content 	=	str_ireplace('[AGENT]', $current_user->user_login, $content);
 		$content 	=	str_ireplace('[AGENT_EMAIL]', $current_user->user_email, $content);				
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
 		
-		$headers  = 'MIME-Version: 1.0' . "\r\n";
+		//$headers  = 'MIME-Version: 1.0' . "\r\n";
 				
-		$headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
+		//$headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
 				
-		$headers .= "From: ".get_option('blogname')." < ".get_option('admin_email')."> \r\n";
-				
+		//$headers .= "From: ".get_option('blogname')." < ".get_option('admin_email')."> \r\n";
+
+		$fromName = get_option('blogname');
+		$fromEmail = get_option('admin_email');
+
 		$message	=	$this->get_mail_template($content);
 					
-		if($this->mandrip_mail($user_info->user_email, $subject , $message, $headers))
+		if($this->send_mail($user_info->user_email, $subject, $message, $fromName, $fromEmail))
 		return true;
 		else
 		return false;
 	}
 	
-	function mandrip_mail($to, $subject , $message, $headers, $arr=array())
+	function send_mail($to, $subject , $message, $fromName, $fromEmail, $arr=array())
 	{
-		$option = get_option('mandrill');
+		$option = get_option('sendgrid');
 		
-		$mail = new PHPMailer;
+		$sendgrid = new SendGrid($option['api']);
+		$email = new SendGrid\Email();
 
-		$mail->IsSMTP();                                      // Set mailer to use SMTP
-		$mail->Host = 'smtp.mandrillapp.com';                 // Specify main and backup server
-		$mail->Port = 587;                                    // Set the SMTP port
-		$mail->SMTPAuth = true;                               // Enable SMTP authentication
-		$mail->Username = $option['email'];        // SMTP username
-		$mail->Password = $option['api'];           // SMTP password
-		$mail->SMTPSecure = 'tls';                            // Enable encryption, 'ssl' also accepted
 
 		if(count($arr))
 		{
-			$mail->From = $arr['email'];
-			$mail->FromName = $arr['name'];
+			$email->setFrom($arr['email']);
+			$email->setFromName($arr['name']);
 		}
 		else
 		{
-			$mail->From = 'neil@financialinsiders.ca';
-			$mail->FromName = 'FinancialInsiders.ca';
+			$email->setFrom('neil@financialinsiders.ca');
+			$email->setFromName('FinancialInsiders.ca');
 		}
-		$mail->AddAddress($to);
+		
+		$email->addTo($to);
+		$email->setHtml($message);
 
-		$mail->IsHTML(true);                                  // Set email format to HTML
+		                             
 
-		$mail->Subject = $subject;
-		$mail->Body    = $message;
+		$email->setSubject($subject);
+		//$email->Body    = $message;
 
-		if(!$mail->Send()) {
+		try {
+			$sendgrid->send($email);
+		} catch(\SendGrid\Exception $e) {
+			echo $e->getCode();
+			foreach($e->getErrors() as $er) {
+				echo $er;
+			}
+		}
+
+		//if(!$mail->Send()) {
 		   /* echo 'Message could not be sent.';
 		   echo 'Mailer Error: ' . $mail->ErrorInfo;
 		   exit; */
-		   return false;
-		}
+		  // return false;
+		//}
 
 		//echo 'Message has been sent';
 		return true;

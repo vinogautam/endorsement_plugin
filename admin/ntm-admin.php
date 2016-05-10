@@ -745,14 +745,14 @@ class Endorsements_admin{
 		elseif(isset($_GET['tab']) && $_GET['tab'] == 'endorsement' && isset($_GET['delete']))
 			$wpdb->delete($wpdb->prefix . "endorsements", array( 'id' => $_GET['delete'] ) );
 		elseif(isset($_GET['tab']) && $_GET['tab'] == 'endorsers' && isset($_GET['delete']))
-			wp_delete_user($_GET['delete']);
+			wpmu_delete_user($_GET['delete']);
 	}
 	
 	public function settingsPage()
     {   global $pagenow, $current_user, $ntm_mail;
 		if ( isset ( $_GET['tab'] ) ) $current = $_GET['tab']; else $current = 'settingsgeneral';
 		
-		$tabs = array('settingsgeneral' => 'General', 'cloudsponge' => 'Cloudsponge', 'giftbit' => 'Giftbit', 'mandrill' => 'Mandrill');
+		$tabs = array('settingsgeneral' => 'General', 'cloudsponge' => 'Cloudsponge', 'giftbit' => 'Giftbit', 'SendGrid' => 'SendGrid');
 		$current_page = $tabs[$current];
 		$current_tab = $current.'_settings';
 		
@@ -809,24 +809,21 @@ class Endorsements_admin{
 		<?php
 	}
 	
-	public function mandrill_settings()
+	public function sendgrid_settings()
 	{
-		$option = get_option('mandrill');
+		$option = get_option('sendgrid');
 		?>
 		<form method="post">
 			<table class="form-table">
 				<tbody>
+					
 					<tr>
-						<th scope="row"><label for="blogname">Mandrill Email</label></th>
-						<td><input type="text" class="regular-text" value="<?php echo $option['email'];?>" id="blogname" name="mandrill[email]"></td>
-					</tr>
-					<tr>
-						<th scope="row"><label for="blogname">Mandrill Api key</label></th>
-						<td><input type="text" class="regular-text" value="<?php echo $option['api'];?>" id="blogname" name="mandrill[api]"></td>
+						<th scope="row"><label for="blogname">Sendgrid Api key</label></th>
+						<td><input type="text" class="regular-text" value="<?php echo $option['api'];?>" id="blogname" name="sendgrid[api]"></td>
 					</tr>
 				</tbody>
 			</table>
-			<?php submit_button('Save ', 'primary', 'mandrill-save');?>
+			<?php submit_button('Save ', 'primary', 'sendgrid-save');?>
 		</form>
 		<?php
 	}
@@ -931,9 +928,9 @@ class Endorsements_admin{
 	
 	public function settings_actions()
 	{
-		if(isset($_POST['mandrill-save']))
+		if(isset($_POST['sendgrid-save']))
 		{
-			update_option('mandrill', $_POST['mandrill']);
+			update_option('sendgrid', $_POST['sendgrid']);
 		}
 		elseif(isset($_POST['cloudsponge-save']))
 		{
@@ -961,20 +958,48 @@ class Endorsements_admin{
 			
 			if($option['amount'] >= $_POST['gift_amount'])
 			{
-				$data = array(
-							'endorser_id' =>$_POST['endorser_id'],
-							'amout' => $_POST['gift_amount'],
-							'agent_id' => get_current_user_id(),
-							'created'	=> date("Y-m-d H:i:s")
-							);
-				$wpdb->insert($wpdb->prefix . "gift_transaction", $data);
-				$gift_id = $wpdb->insert_id;
-				$ntm_mail->send_gift_mail('get_manualgift_mail', $_POST['endorser_id'], $gift_id);
+				$this->fa_lead_options = get_option('fa_lead_settings');
 				
-				$option['amount'] = $option['amount'] - $_POST['gift_amount'];
-				update_option("giftbit", $option);
+				Stripe::setApiKey($this->fa_lead_options['api_key']);
+				Stripe::setAPIVersion("2015-07-13");
 				
-				$message = "Gift send successfully!!";
+				$customer_id = get_user_meta(get_blog_option(get_current_blog_id(), 'agent_id'), "pmpro_stripe_customerid");
+				
+				$amount = $this->fa_lead_options['admin_fee'] * 100;
+				$giftAmount =  $this->fa_lead_options['init_gift'];
+
+				$invoice_item = Stripe_InvoiceItem::create( array(
+					'customer'    => $customer_id, // the customer to apply the fee to
+					'amount'      => $this->fa_lead_options['admin_fee'], // amount in cents
+					'currency'    => 'usd',
+					'description' => 'One-time setup fee' // our fee description
+				) );
+			 
+				$invoice = Stripe_Invoice::create( array(
+					'customer'    => $customer_id, // the customer to apply the fee to
+				) );
+			 
+				$result = $invoice->pay();
+				if(isset($result->object) && $result->object == 'invoice')
+				{
+				
+					$data = array(
+								'endorser_id' =>$_POST['endorser_id'],
+								'amout' => $_POST['gift_amount'],
+								'agent_id' => get_current_user_id(),
+								'created'	=> date("Y-m-d H:i:s")
+								);
+					$wpdb->insert($wpdb->prefix . "gift_transaction", $data);
+					$gift_id = $wpdb->insert_id;
+					$ntm_mail->send_gift_mail('get_manualgift_mail', $_POST['endorser_id'], $gift_id);
+					
+					$option['amount'] = $option['amount'] - $_POST['gift_amount'];
+					update_option("giftbit", $option);
+					
+					$message = "Gift send successfully!!";
+				}
+				else
+					$message = "Error when payment";
 			}
 			else
 			{

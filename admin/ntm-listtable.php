@@ -136,7 +136,7 @@ class EndoserTable extends WP_List_Table {
 		$del_val = $_REQUEST['movie'];
 		print_r($del_val);
 		foreach($del_val as $val) {
-			wp_delete_user($val);
+			wpmu_delete_user($val);
 		}}
        
     }

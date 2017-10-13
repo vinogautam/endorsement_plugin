@@ -383,7 +383,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 		}
 		
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
-		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', get_permalink(get_option('ENDORSEMENT_FRONT_END')).'?autologin='.base64_encode(base64_encode($autologin)), $content);
+		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', (get_option('endorser_app') ? get_option('endorser_app') : get_permalink(get_option('ENDORSEMENT_FRONT_END'))).'?autologin='.base64_encode(base64_encode($autologin)), $content);
 		$content 	=	str_ireplace('[AGENT]', $current_user->user_login, $content);
 		$content 	=	str_ireplace('[AGENT_EMAIL]', $current_user->user_email, $content);				
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
@@ -404,6 +404,10 @@ Let me know if you have any questions,", ET_DOMAIN);
 		global $current_user;
 		
 		$user_info = get_userdata($user_id);
+
+		$blog_id = get_active_blog_for_user( $user_id )->blog_id;
+		$agent_id = get_blog_option($blog_id, 'agent_id');
+		$agent_info = get_userdata($agent_id);
 		
 		$data = $this->get_notification_mail();
 		
@@ -413,9 +417,10 @@ Let me know if you have any questions,", ET_DOMAIN);
 		
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
 		$content 	=	str_ireplace('[ENDORSER_EMAIL]', $user_info->user_email, $content);
-		$content 	=	str_ireplace('[AGENT]', $current_user->user_login, $content);
-		$content 	=	str_ireplace('[AGENT_EMAIL]', $current_user->user_email, $content);				
+		$content 	=	str_ireplace('[AGENT]', $agent_info->user_login, $content);
+		$content 	=	str_ireplace('[AGENT_EMAIL]', $agent_info->user_email, $content);				
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
+		$content	= 	str_ireplace('[blogname]', get_option('blogname'), $content);
 		
 		
 		

@@ -774,6 +774,7 @@ class Endorsements_admin{
 	public function settingsgeneral_settings()
 	{
 		$option = get_option('twitter_text');
+		$endorser_app = get_option('endorser_app');
 		?>
 		
 		<form method="post">
@@ -783,7 +784,10 @@ class Endorsements_admin{
 						<th scope="row"><label for="blogname">Twitter text</label></th>
 						<td><textarea name="twitter_text" rows="3" cols="60"><?php echo stripslashes($option);?></textarea></td>
 					</tr>
-					
+					<tr>
+						<th scope="row"><label for="blogname">Endorser App URl</label></th>
+						<td><textarea name="endorser_app" rows="3" cols="60"><?php echo stripslashes($endorser_app);?></textarea></td>
+					</tr>
 				</tbody>
 			</table>
 			<?php submit_button('Save ', 'primary', 'general-save');?>
@@ -946,6 +950,7 @@ class Endorsements_admin{
 		elseif(isset($_POST['general-save']))
 		{
 			update_option('twitter_text', $_POST['twitter_text']);
+			update_option('endorser_app', $_POST['endorser_app']);
 		}
 	}
 	

@@ -48,7 +48,7 @@ class NTM_mail_template{
 		$default	=	__("<p>Hello [ENDORSER],</p><p> Invitation to join &nbsp;&nbsp;[SITE], cick auto link and join as endorser.<br> [AUTO_LOGIN_LINK]</p>
 							<p>Thank you and welcome to [SITE].</p>
 							<p>Referred Agent [AGENT]<p>
-							<p>[AGENT_EMAIL]<p>", ET_DOMAIN);
+							<p>[AGENT_EMAIL]<p>", '');
 		
 		$content = get_option('endorser_invitation_mail');
 		
@@ -71,7 +71,7 @@ class NTM_mail_template{
 			$new_value	=	__("<p>Hello [ENDORSER],</p><p> Invitation to join &nbsp;&nbsp;[SITE], cick auto link and join as endorser.<br> [AUTO_LOGIN_LINK]</p>
 							<p>Thank you and welcome to [SITE].</p>
 							<p>Referred Agent [AGENT]<p>
-							<p>[AGENT_EMAIL]<p>", ET_DOMAIN);
+							<p>[AGENT_EMAIL]<p>", '');
 							
 			$subject = 'Welcome Email';
 
@@ -90,7 +90,7 @@ class NTM_mail_template{
 		$default	=	__("<p>Hello [ENDORSER],</p><p>You have successfully joined with&nbsp;&nbsp;[SITE]. [AUTO_LOGIN_LINK]</p>
 							<p>Thank you and welcome to [SITE].</p>
 							<p>Referred Agent [AGENT]<p>
-							<p>[AGENT_EMAIL]<p>", ET_DOMAIN);
+							<p>[AGENT_EMAIL]<p>", '');
 		
 		$content = get_option('welcome_mail');
 		
@@ -113,7 +113,7 @@ class NTM_mail_template{
 			$new_value	=	__("<p>Hello [ENDORSER],</p><p>You have successfully joined with&nbsp;&nbsp;[SITE]. [AUTO_LOGIN_LINK]</p>
 							<p>Thank you and welcome to [SITE].</p>
 							<p>Referred Agent [AGENT]<p>
-							<p>[AGENT_EMAIL]<p>", ET_DOMAIN);
+							<p>[AGENT_EMAIL]<p>", '');
 							
 			$subject = 'Welcome Email';
 
@@ -132,7 +132,7 @@ class NTM_mail_template{
 		$default	=	__("<p>Hello admin,</p><p>New endorser joined in our website.
 		Referred Agent: [AGENT]<br>
 		Referred Email: [AGENT_EMAIL]</p>
-<p>Thank you and welcome to [blogname].</p>", ET_DOMAIN);
+<p>Thank you and welcome to [blogname].</p>", '');
 		
 		$content = get_option('notification_mail');
 		
@@ -155,7 +155,7 @@ class NTM_mail_template{
 			$new_value	=	__("<p>Hello admin,</p><p>New endorser joined in our website.
 		Referred Agent: [AGENT]<br>
 		Referred Email: [AGENT_EMAIL]</p>
-<p>Thank you and welcome to [blogname].</p>", ET_DOMAIN);
+<p>Thank you and welcome to [blogname].</p>", '');
 			
 			$subject = 'New Endorser Joined';
 		}
@@ -183,7 +183,7 @@ and mentoring people for 20+ years, but most of all Terry enjoys helping people 
 financial planning needs. He is the real deal.
 To learn more about Terry, or register for a free consultation, click here ___________ [TRACK_LINK]. His number is 604-288-1420. I recommend you register, or give him a call right away,
 because his schedule fills up fast.
-Let me know if you have any questions,", ET_DOMAIN);
+Let me know if you have any questions,", '');
 
 		$content = get_option('invitation_mail');
 		
@@ -216,7 +216,7 @@ and mentoring people for 20+ years, but most of all Terry enjoys helping people 
 financial planning needs. He is the real deal.
 To learn more about Terry, or register for a free consultation, click here ___________ [TRACK_LINK]. His number is 604-288-1420. I recommend you register, or give him a call right away,
 because his schedule fills up fast.
-Let me know if you have any questions,", ET_DOMAIN);
+Let me know if you have any questions,", '');
 		
 			$subject = 'You are invited as Endorsement';
 		}
@@ -233,7 +233,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 
 
 		$default	=	__("Hi [ENDORSER], Your covertion process is intiated. Please click below link and select your vendor. 
-		Then you will get your gift voucher. [SELECT_VENDOR_LINK].", ET_DOMAIN);
+		Then you will get your gift voucher. [SELECT_VENDOR_LINK].", '');
 
 		$content = get_option('gift_mail');
 		
@@ -255,7 +255,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 		if($default) {
 
 			$new_value	=	__("Hi [ENDORSER], Your covertion process is intiated. Please click below link and select your vendor. 
-			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", ET_DOMAIN);
+			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", '');
 		
 			$subject = 'Gift coversion Initiated';
 		}
@@ -272,7 +272,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 
 
 		$default	=	__("Hi [ENDORSER], Your agent resend gift for your converted endorsement. Please click below link and select your vendor. 
-			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", ET_DOMAIN);
+			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", '');
 
 		$content = get_option('regift_mail');
 		
@@ -294,7 +294,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 		if($default) {
 
 			$new_value	=	__("Hi [ENDORSER], Your agent resend gift for your converted endorsement. Please click below link and select your vendor. 
-			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", ET_DOMAIN);
+			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", '');
 		
 			$subject = 'Get Bonus Gift';
 		}
@@ -311,7 +311,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 
 
 		$default	=	__("Hi [ENDORSER], Your agent resend gift for your converted endorsement. Please click below link and select your vendor. 
-			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", ET_DOMAIN);
+			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", '');
 
 		$content = get_option('manualgift_mail');
 		
@@ -333,7 +333,7 @@ Let me know if you have any questions,", ET_DOMAIN);
 		if($default) {
 
 			$new_value	=	__("Hi [ENDORSER], Your agent resend gift for your converted endorsement. Please click below link and select your vendor. 
-			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", ET_DOMAIN);
+			Then you will get your gift voucher. [SELECT_VENDOR_LINK].", '');
 		
 			$subject = 'Get Bonus Gift';
 		}
@@ -360,13 +360,17 @@ Let me know if you have any questions,", ET_DOMAIN);
 	
 	public function send_welcome_mail($email, $user_id, $autologin, $data = array()){
 					
-		global $current_user, $wpdb;
+		global $wpdb;
 		
 		$user_info = get_userdata($user_id);
       	
 		$username = $user_info->user_login;
 		
 		$data = count($data) ? $data : $this->get_welcome_mail();
+
+		$blog_id = get_active_blog_for_user( $user_id )->blog_id;
+		$agent_id = get_blog_option($blog_id, 'agent_id');
+		$agent_info = get_userdata($agent_id);
 		
 		//print_r(get_permalink(get_option('ENDORSEMENT_FRONT_END')).'?autologin='.base64_encode(base64_encode($autologin)));
 		$endorser_letter = get_user_meta($user_id, 'endorser_letter', true);
@@ -384,8 +388,8 @@ Let me know if you have any questions,", ET_DOMAIN);
 		
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
 		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', (get_option('endorser_app') ? get_option('endorser_app') : get_permalink(get_option('ENDORSEMENT_FRONT_END'))).'?autologin='.base64_encode(base64_encode($autologin)), $content);
-		$content 	=	str_ireplace('[AGENT]', $current_user->user_login, $content);
-		$content 	=	str_ireplace('[AGENT_EMAIL]', $current_user->user_email, $content);				
+		$content 	=	str_ireplace('[AGENT]', $agent_info->user_login, $content);
+		$content 	=	str_ireplace('[AGENT_EMAIL]', $agent_info->user_email, $content);				
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
 		
 		

@@ -373,7 +373,7 @@ Let me know if you have any questions,", '');
 		$agent_info = get_userdata($agent_id);
 		
 		//print_r(get_permalink(get_option('ENDORSEMENT_FRONT_END')).'?autologin='.base64_encode(base64_encode($autologin)));
-		$endorser_letter = get_user_meta($user_id, 'endorser_letter', true);
+		/*$endorser_letter = get_user_meta($user_id, 'endorser_letter', true);
 		if($endorser_letter)
 		{
 			$res = $wpdb->get_row("select * from ".$wpdb->prefix . "mailtemplates where id=".$endorser_letter);
@@ -384,7 +384,14 @@ Let me know if you have any questions,", '');
 		{
 			$subject = $data['subject'];
 			$content = $data['content'];
-		}
+		}*/
+
+		$campaign = get_user_meta($user_id, 'campaign', true);
+		$templates = $wpdb->get_row("select * from wp_campaign_templates where name = 'Add Endorser Invitation' and campaign_id=".$campaign);
+
+		$subject = 'Welcome to financialinsiders';
+		$content = $templates->template;
+
 		
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
 		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', (get_option('endorser_app') ? get_option('endorser_app') : get_permalink(get_option('ENDORSEMENT_FRONT_END'))).'?autologin='.base64_encode(base64_encode($autologin)), $content);
@@ -446,7 +453,7 @@ Let me know if you have any questions,", '');
 		
 		$data = $this->get_invitation_mail();
 		
-		$endorser_letter = get_user_meta($endorser, 'endorsement_letter', true);
+		/*$endorser_letter = get_user_meta($endorser, 'endorsement_letter', true);
 		if($endorser_letter)
 		{
 			$res = $wpdb->get_row("select * from ".$wpdb->prefix . "mailtemplates where id=".$endorser_letter);
@@ -459,11 +466,20 @@ Let me know if you have any questions,", '');
 			$subject = $data['subject'];
 			//$content = $data['content'];
 			$pagelink = get_option('ENDORSEMENT_FRONT_END');
-		}
+		}*/
+
+		$campaign = get_user_meta($endorser, 'campaign', true);
+		$dcampaign = $wpdb->get_row("select * from campaigns where id=".$campaign);
+		$templates = $wpdb->get_row("select * from wp_campaign_templates where name = 'Endorser Letter' and campaign_id=".$campaign);
+
+		$pagelink = get_post_meta($dcampaign->strategy, 'strategy_link', true);
+
+		$subject = 'Welcome to financialinsiders';
+		$content = $templates->template;
 		
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($endorser, 'first_name', true).' '.get_user_meta($endorser, 'last_name', true), $content);
 		$content 	=	str_ireplace('[ENDORSEMENT]', $info['name'], $content);
-		$content 	=	str_ireplace('[TRACK_LINK]', get_permalink($pagelink).'?ref='.base64_encode(base64_encode($id.'#&$#'.$endorser.'#&$#'.$info['tracker_id'])), $content);
+		$content 	=	str_ireplace('[TRACK_LINK]', $pagelink.'?ref='.base64_encode(base64_encode($id.'#&$#'.$endorser.'#&$#'.$info['tracker_id'])), $content);
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
 		
 		//$headers  = 'MIME-Version: 1.0' . "\r\n";

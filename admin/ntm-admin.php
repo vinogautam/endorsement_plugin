@@ -775,6 +775,7 @@ class Endorsements_admin{
 	{
 		$option = get_option('twitter_text');
 		$endorser_app = get_option('endorser_app');
+		$mail_template_css = get_option('mail_template_css');
 		?>
 		
 		<form method="post">
@@ -787,6 +788,10 @@ class Endorsements_admin{
 					<tr>
 						<th scope="row"><label for="blogname">Endorser App URl</label></th>
 						<td><textarea name="endorser_app" rows="3" cols="60"><?php echo stripslashes($endorser_app);?></textarea></td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="blogname">Mail Template Css</label></th>
+						<td><textarea name="mail_template_css" cols="100" rows="8"><?= isset($mail_template_css) ? stripslashes(strip_tags($mail_template_css)) : '';?></textarea></td>
 					</tr>
 				</tbody>
 			</table>
@@ -951,6 +956,7 @@ class Endorsements_admin{
 		{
 			update_option('twitter_text', $_POST['twitter_text']);
 			update_option('endorser_app', $_POST['endorser_app']);
+			update_option('mail_template_css', addslashes(nl2br($_POST['mail_template_css'])));
 		}
 	}
 	

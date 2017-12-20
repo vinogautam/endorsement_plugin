@@ -392,7 +392,7 @@ Let me know if you have any questions,", '');
 		$subject = 'Welcome to financialinsiders';
 		$content = str_replace("<br />", "", stripslashes(stripslashes($templates->template)));
 
-		$content = '<html><head><style>'.stripslashes(strip_tags(get_option('mail_template_css'))).'</style></head><body>'.$content.'</body></html>');
+		$content = '<html><head><style>'.stripslashes(strip_tags(get_option('mail_template_css'))).'</style></head><body>'.$content.'</body></html>';
 		
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
 		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', (get_option('endorser_app') ? get_option('endorser_app') : get_permalink(get_option('ENDORSEMENT_FRONT_END'))).'?autologin='.base64_encode(base64_encode($autologin)), $content);

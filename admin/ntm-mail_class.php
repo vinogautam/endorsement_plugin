@@ -485,7 +485,7 @@ Let me know if you have any questions,", '');
 
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($endorser, 'first_name', true).' '.get_user_meta($endorser, 'last_name', true), $content);
 		$content 	=	str_ireplace('[ENDORSEMENT]', $info['name'], $content);
-		$content 	=	str_ireplace('[TRACK_LINK]', $pagelink.'?ref='.base64_encode(base64_encode($id.'#&$#'.$endorser.'#&$#'.$info['tracker_id'])), $content);
+		$content 	=	str_ireplace('[STRATEGYLINK]', $pagelink.'?ref='.base64_encode(base64_encode($id.'#&$#'.$endorser.'#&$#'.$info['tracker_id'])), $content);
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
 		
 		//$headers  = 'MIME-Version: 1.0' . "\r\n";

@@ -448,7 +448,7 @@ Let me know if you have any questions,", '');
 		
 	}
 	
-	public function send_invitation_mail($info, $endorser, $id, $content){
+	public function send_invitation_mail($info, $endorser, $id, $content=''){
 					
 		global $current_user, $wpdb;
 		
@@ -469,16 +469,19 @@ Let me know if you have any questions,", '');
 			$pagelink = get_option('ENDORSEMENT_FRONT_END');
 		}*/
 
-		$campaign = get_user_meta($endorser, 'campaign', true);
-		$dcampaign = $wpdb->get_row("select * from campaigns where id=".$campaign);
-		$templates = $wpdb->get_row("select * from wp_campaign_templates where name = 'Endorser Letter' and campaign_id=".$campaign);
+		
+			$campaign = get_user_meta($endorser, 'campaign', true);
+			$dcampaign = $wpdb->get_row("select * from campaigns where id=".$campaign);
+			$templates = $wpdb->get_row("select * from wp_campaign_templates where name = 'Endorser Letter' and campaign_id=".$campaign);
 
-		$pagelink = get_post_meta($dcampaign->strategy, 'strategy_link', true);
+			$pagelink = get_post_meta($dcampaign->strategy, 'strategy_link', true);
 
-		$subject = 'Welcome to financialinsiders';
-		$content = str_replace("<br />", "", stripslashes(stripslashes($templates->template)));
+			$subject = 'Welcome to financialinsiders';
+		if($content == ''){
+			$content = str_replace("<br />", "", stripslashes(stripslashes($templates->template)));
 
-		$content = '<html><head><style>'.stripslashes(strip_tags(get_option('mail_template_css'))).'</style></head><body>'.$content.'</body></html>');
+			$content = '<html><head><style>'.stripslashes(strip_tags(get_option('mail_template_css'))).'</style></head><body>'.$content.'</body></html>';
+		}
 
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($endorser, 'first_name', true).' '.get_user_meta($endorser, 'last_name', true), $content);
 		$content 	=	str_ireplace('[ENDORSEMENT]', $info['name'], $content);

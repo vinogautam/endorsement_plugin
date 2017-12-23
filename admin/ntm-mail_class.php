@@ -348,11 +348,13 @@ Let me know if you have any questions,", '');
 	
 	public function get_mail_template($content){
 		
-		$value = '<table cellpadding="5" width="750" cellspacing="0" border="0" style="background-color:#FFF;">
+		$value = '<html><head><style>'.stripslashes(strip_tags(get_option('mail_template_css'))).'</style></head><body>'.$content.'</body></html>';
+
+		/*$value = '<table cellpadding="5" width="750" cellspacing="0" border="0" style="background-color:#FFF;">
 				<td align="left" colspan="4" style="margin-right:30px; padding-left:10px;">'.$content.'</td>
 				</tr>
                 <tr><td colspan="4" align="center" style="background-color:#EAEAEA; border-top: solid 3px #1E1F22; padding-top:10px; color:#000;">Poweredby Financial Insiders</td></tr>
-</table>';
+</table>';*/
 
 		return $value;
 	}
@@ -392,8 +394,6 @@ Let me know if you have any questions,", '');
 		$subject = 'Welcome to financialinsiders';
 		$content = str_replace("<br />", "", stripslashes(stripslashes($templates->template)));
 
-		$content = '<html><head><style>'.stripslashes(strip_tags(get_option('mail_template_css'))).'</style></head><body>'.$content.'</body></html>';
-		
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
 		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', (get_option('endorser_app') ? get_option('endorser_app') : get_permalink(get_option('ENDORSEMENT_FRONT_END'))).'?autologin='.base64_encode(base64_encode($autologin)), $content);
 		$content 	=	str_ireplace('[AGENT]', $agent_info->user_login, $content);
@@ -479,8 +479,6 @@ Let me know if you have any questions,", '');
 			$subject = 'Welcome to financialinsiders';
 		if($content == ''){
 			$content = str_replace("<br />", "", stripslashes(stripslashes($templates->template)));
-
-			$content = '<html><head><style>'.stripslashes(strip_tags(get_option('mail_template_css'))).'</style></head><body>'.$content.'</body></html>';
 		}
 
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($endorser, 'first_name', true).' '.get_user_meta($endorser, 'last_name', true), $content);

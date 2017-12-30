@@ -391,11 +391,13 @@ Let me know if you have any questions,", '');
 		$campaign = get_user_meta($user_id, 'campaign', true);
 		$templates = $wpdb->get_row("select * from wp_campaign_templates where name = 'Add Endorser Invitation' and campaign_id=".$campaign);
 
+		$video = $templates->media ? $templates->media : get_user_meta($user_id, 'video', true) ;
+
 		$subject = 'Welcome to financialinsiders';
 		$content = str_replace("<br />", "", stripslashes(stripslashes($templates->template)));
 
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
-		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', (get_option('endorser_app') ? get_option('endorser_app') : get_permalink(get_option('ENDORSEMENT_FRONT_END'))).'?autologin='.base64_encode(base64_encode($autologin)), $content);
+		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', (get_option('endorser_app') ? get_option('endorser_app') : get_permalink(get_option('ENDORSEMENT_FRONT_END'))).'?autologin='.base64_encode(base64_encode($autologin)).'&video='.$video, $content);
 		$content 	=	str_ireplace('[AGENT]', $agent_info->user_login, $content);
 		$content 	=	str_ireplace('[AGENT_EMAIL]', $agent_info->user_email, $content);				
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
@@ -481,9 +483,11 @@ Let me know if you have any questions,", '');
 			$content = str_replace("<br />", "", stripslashes(stripslashes($templates->template)));
 		}
 
+		$video = $templates->media ? $templates->media : get_user_meta($endorser, 'video', true) ;
+		
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($endorser, 'first_name', true).' '.get_user_meta($endorser, 'last_name', true), $content);
 		$content 	=	str_ireplace('[ENDORSEMENT]', $info['name'], $content);
-		$content 	=	str_ireplace('[STRATEGYLINK]', $pagelink.'?ref='.base64_encode(base64_encode($id.'#&$#'.$endorser.'#&$#'.$info['tracker_id'])), $content);
+		$content 	=	str_ireplace('[STRATEGYLINK]', $pagelink.'?ref='.base64_encode(base64_encode($id.'#&$#'.$endorser.'#&$#'.$info['tracker_id'])).'&video='.$video, $content);
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);
 		
 		//$headers  = 'MIME-Version: 1.0' . "\r\n";

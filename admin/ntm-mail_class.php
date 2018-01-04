@@ -346,9 +346,21 @@ Let me know if you have any questions,", '');
 
 	}
 	
-	public function get_mail_template($content){
+	public function get_mail_template($content, $preheader_text=''){
 		
-		$value = '<html><head><style>'.stripslashes(strip_tags(get_option('mail_template_css'))).'</style></head><body>'.$content.'</body></html>';
+		$value = '<html>
+		<head>
+			<style>'.stripslashes(strip_tags(get_option('mail_template_css'))).'</style>
+		</head>
+		<body>
+			<!-- Visually Hidden Preheader Text : BEGIN -->
+	        <div style="display: none; font-size: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all; font-family: sans-serif;">
+	            '.$preheader_text.'
+	        </div>
+	        <!-- Visually Hidden Preheader Text : END -->
+			<div>'.$content.'</div>
+		</body>
+		</html>';
 
 		/*$value = '<table cellpadding="5" width="750" cellspacing="0" border="0" style="background-color:#FFF;">
 				<td align="left" colspan="4" style="margin-right:30px; padding-left:10px;">'.$content.'</td>
@@ -393,7 +405,8 @@ Let me know if you have any questions,", '');
 
 		$video = $templates->media ? $templates->media : get_user_meta($user_id, 'video', true) ;
 
-		$subject = 'Welcome to financialinsiders';
+		$subject = stripslashes(stripslashes($templates->subject)) ? stripslashes(stripslashes($templates->subject)) : 'Welcome to financialinsiders';
+		$preheader_text = stripslashes(stripslashes($templates->preheader_text));
 		$content = str_replace("<br />", "", stripslashes(stripslashes($templates->template)));
 
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
@@ -405,7 +418,7 @@ Let me know if you have any questions,", '');
 		
 		$fromName = get_option('blogname');
 		$fromEmail = get_option('admin_email');		
-		$message	=	$this->get_mail_template($content);
+		$message	=	$this->get_mail_template($content, $preheader_text);
 					
 		if($this->send_mail($email, $subject , $message, $fromName, $fromEmail ))
 		return true;
@@ -473,12 +486,14 @@ Let me know if you have any questions,", '');
 
 		
 			$campaign = get_user_meta($endorser, 'campaign', true);
-			$dcampaign = $wpdb->get_row("select * from campaigns where id=".$campaign);
+			$dcampaign = $wpdb->get_row("select * from wp_campaigns where id=".$campaign);
 			$templates = $wpdb->get_row("select * from wp_campaign_templates where name = 'Endorser Letter' and campaign_id=".$campaign);
 
 			$pagelink = get_post_meta($dcampaign->strategy, 'strategy_link', true);
 
-			$subject = 'Welcome to financialinsiders';
+			$subject = stripslashes(stripslashes($templates->subject)) ? stripslashes(stripslashes($templates->subject)) : 'Welcome to financialinsiders';
+			$preheader_text = stripslashes(stripslashes($templates->preheader_text));
+
 		if($content == ''){
 			$content = str_replace("<br />", "", stripslashes(stripslashes($templates->template)));
 		}
@@ -497,7 +512,7 @@ Let me know if you have any questions,", '');
 		//$headers .= "From: ".get_option('blogname')." < ".get_option('admin_email')."> \r\n";
 		//$fromName = get_option('blogname');
 		//$fromEmail = get_option('admin_email');			
-		$message	=	$this->get_mail_template($content);
+		$message	=	$this->get_mail_template($content, $preheader_text);
 		
 		$arr = array('name' => get_user_meta($endorser, 'first_name', true).' '.get_user_meta($endorser, 'last_name', true),
 					'email' => get_userdata($endorser)->user_email);

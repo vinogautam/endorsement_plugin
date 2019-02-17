@@ -372,7 +372,7 @@ Let me know if you have any questions,", '');
 	}
 	
 	
-	public function send_welcome_mail($email, $user_id, $autologin, $data = array()){
+	public function send_welcome_mail($email, $user_id, $autologin, $videoURL = false, $data = array()){
 					
 		global $wpdb;
 		
@@ -401,13 +401,18 @@ Let me know if you have any questions,", '');
 		}*/
 
 		$campaign = get_user_meta($user_id, 'campaign', true);
-		$templates = $wpdb->get_row("select * from wp_campaign_templates where name = 'Add Endorser Invitation' and campaign_id=".$campaign);
+		//$templates = $wpdb->get_row("select * from ".$wpdb->prefix."campaign_templates where name = 'Endorser Invitation' and campaign_id=".$campaign);
 
-		$video = $templates->media ? $templates->media : get_user_meta($user_id, 'video', true) ;
+		$botInfo = get_post_meta($campaign, 'emailInvite', true);
+		$botInfo = $botInfo ? (array) $botInfo : array();
+		$video = '';
+		if($videoURL) {
+			$video = $videoURL;	
+		}
 
-		$subject = stripslashes(stripslashes($templates->subject)) ? stripslashes(stripslashes($templates->subject)) : 'Welcome to financialinsiders';
-		$preheader_text = stripslashes(stripslashes($templates->preheader_text));
-		$content = str_replace("<br />", "", stripslashes(stripslashes($templates->template)));
+		$subject = stripslashes(stripslashes($botInfo->subject)) ? stripslashes(stripslashes($botInfo->subject)) : 'Welcome to financialinsiders';
+		$preheader_text = stripslashes(stripslashes($botInfo->preheader));
+		$content = str_replace("<br />", "", stripslashes(stripslashes($botInfo->body)));
 
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
 		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', (get_option('endorser_app') ? get_option('endorser_app') : get_permalink(get_option('ENDORSEMENT_FRONT_END'))).'?autologin='.base64_encode(base64_encode($autologin)).'&video='.$video, $content);
@@ -486,8 +491,8 @@ Let me know if you have any questions,", '');
 
 		
 			$campaign = get_user_meta($endorser, 'campaign', true);
-			$dcampaign = $wpdb->get_row("select * from wp_campaigns where id=".$campaign);
-			$templates = $wpdb->get_row("select * from wp_campaign_templates where name = 'Endorser Letter' and campaign_id=".$campaign);
+			$dcampaign = $wpdb->get_row("select * from ".$wpdb->prefix."campaigns where id=".$campaign);
+			$templates = $wpdb->get_row("select * from ".$wpdb->prefix."campaign_templates where name = 'Endorsement Letter' and campaign_id=".$campaign);
 
 			$pagelink = get_post_meta($dcampaign->strategy, 'strategy_link', true);
 
@@ -566,7 +571,7 @@ Let me know if you have any questions,", '');
 		return false;
 	}
 	
-	function send_mail($to, $subject , $message, $fromName, $fromEmail, $arr=array())
+	function send_mail($to, $subject , $message, $fromName='', $fromEmail='', $arr=array())
 	{
 		$option = get_option('sendgrid');
 		

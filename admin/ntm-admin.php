@@ -776,11 +776,21 @@ class Endorsements_admin{
 		$option = get_option('twitter_text');
 		$endorser_app = get_option('endorser_app');
 		$mail_template_css = get_option('mail_template_css');
+		$points_per_dollar = get_option('points_per_dollar');
+		$admin_fee = get_option('admin_fee');
 		?>
 		
 		<form method="post">
 			<table class="form-table">
 				<tbody>
+					<tr>
+						<th scope="row"><label for="blogname">Points Per dollar</label></th>
+						<td><input value="<?php echo $points_per_dollar;?>" name="points_per_dollar"></td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="blogname">Admin fee</label></th>
+						<td><input value="<?php echo $admin_fee;?>" name="admin_fee"></td>
+					</tr>
 					<tr>
 						<th scope="row"><label for="blogname">Twitter text</label></th>
 						<td><textarea name="twitter_text" rows="3" cols="60"><?php echo stripslashes($option);?></textarea></td>
@@ -954,6 +964,8 @@ class Endorsements_admin{
 		}
 		elseif(isset($_POST['general-save']))
 		{
+			update_option('points_per_dollar', $_POST['points_per_dollar']);
+			update_option('admin_fee', $_POST['admin_fee']);
 			update_option('twitter_text', $_POST['twitter_text']);
 			update_option('endorser_app', $_POST['endorser_app']);
 			update_option('mail_template_css', addslashes(nl2br($_POST['mail_template_css'])));

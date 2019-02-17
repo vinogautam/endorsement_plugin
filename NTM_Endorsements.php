@@ -75,7 +75,11 @@
 			{
 				//Track and send gift to endorser
 				
-				$wpdb->update($wpdb->prefix . "endorsements", array("track_status" => 1, "post_data" => serialize($_POST)), array('id' => $track_link[0]));
+				$wpdb->update($wpdb->prefix . "endorsements", array(
+					"track_status" => 1, 
+					"track_time" => date('Y-m-d H:i:s'),
+					"post_data" => serialize($_POST)
+				), array('id' => $track_link[0]));
 				update_user_meta($track_link[1], "tracked_invitation", (get_user_meta($track_link[1], "tracked_invitation", true) + 1));
 				update_user_meta($track_link[1], "tracked_counter", (get_user_meta($track_link[1], "tracked_counter", true) + 1));
 				setcookie("endorsement_tracked", true, time() + (86400 * 365), "/");
@@ -126,6 +130,9 @@
 			   email tinytext NOT NULL,
 			   endorser_id int(11),
 			   track_status int(1),
+			   track_time datetime NOT NULL,
+			   open_status int(1),
+			   open_time datetime NOT NULL,
 			   gift_status int(1),
 			   post_data text NOT NULL,
 			   tracker_id tinytext NOT NULL,

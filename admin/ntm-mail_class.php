@@ -453,11 +453,11 @@ Let me know if you have any questions,", '');
                   <table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;'>
                     <tr>
                       <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;'>
-                        <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;'>Hi [USERNAME],</p>
+                        
                         <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;'>
                           ".$content."
                         </p>
-                        <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;'>[PERSONALNOTE].</p>
+                        
                         <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;'>Good luck! Hope it works.</p>
                       </td>
                     </tr>
@@ -527,6 +527,11 @@ Let me know if you have any questions,", '');
 		$subject = stripslashes(stripslashes($botInfo['subject'])) ? stripslashes(stripslashes($botInfo['subject'])) : 'Welcome to financialinsiders';
 		$preheader_text = stripslashes(stripslashes($botInfo['preheader']));
 		$content = str_replace("<br />", "", stripslashes(stripslashes($botInfo['body'])));
+
+		$content = "<h4>Hi [ENDORSER]</h4>".$content."<p style='font-family: sans-serif;background:#ccc; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;'>
+                          ".$user['landingPageContent']."
+                        </p>
+                        <a href='[AUTO_LOGIN_LINK]'>Click here to autologin</a>";
 
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
 		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', get_permalink($botId).'?autologin='.base64_encode(base64_encode($autologin)).'&videoURL='.$video.'&messagetxt='.$user['landingPageContent'], $content);

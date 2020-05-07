@@ -524,8 +524,28 @@ Let me know if you have any questions,", '');
 			$video = $videoURL;	
 		}
 
+		$dt = array(
+			'messagetxt' => $user['landingPageContent'],
+			'videoURL' => $video,
+			'endorser_id' => $user_id,
+			'agent_id' => $agent_info->ID,
+			'bot_id' => $botId,
+			'autologin' => base64_encode(base64_encode($autologin))
+		);
+		$wpdb->insert("wp_short_link", 
+			array(
+				'link' => '',
+		  		'params' => serialize($dt),
+		  		'endorser_id' => $user_id,
+				'agent_id' => $agent_info->ID
+			)
+		);
+
+		$AUTO_LOGIN_LINK = site_url('introduction.php?id='.$wpdb->insert_id);
+
 		$subject = stripslashes(stripslashes($botInfo['subject'])) ? stripslashes(stripslashes($botInfo['subject'])) : 'Welcome to financialinsiders';
 		$preheader_text = stripslashes(stripslashes($botInfo['preheader']));
+		$personalMsg = $user['landingPageContent'];
 		$content = str_replace("<br />", "", stripslashes(stripslashes($botInfo['body'])));
 
 		$content = "<h4>Hi [ENDORSER]</h4>".$content."<p style='font-family: sans-serif;background:#ccc; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;'>
@@ -534,7 +554,7 @@ Let me know if you have any questions,", '');
                         <a href='[AUTO_LOGIN_LINK]'>Click here to autologin</a>";
 
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
-		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', get_permalink($botId).'?autologin='.base64_encode(base64_encode($autologin)).'&videoURL='.$video.'&messagetxt='.$user['landingPageContent'], $content);
+		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', $AUTO_LOGIN_LINK, $content);
 		$content 	=	str_ireplace('[AGENT]', $agent_info->user_login, $content);
 		$content 	=	str_ireplace('[AGENT_EMAIL]', $agent_info->user_email, $content);				
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);

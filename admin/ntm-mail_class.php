@@ -520,8 +520,10 @@ Let me know if you have any questions,", '');
 		$botInfo = get_post_meta($botId, 'emailInvite', true);
 		$botInfo = $botInfo ? (array) $botInfo : array();
 		$video = '';
+		$video_thumb = '';
 		if($videoURL) {
 			$video = $videoURL;	
+			$video_thumb = '<div></div>';
 		}
 
 		$dt = array(
@@ -548,20 +550,26 @@ Let me know if you have any questions,", '');
 		$personalMsg = $user['landingPageContent'];
 		$content = str_replace("<br />", "", stripslashes(stripslashes($botInfo['body'])));
 
-		$bot_content = stripslashes(stripslashes($botInfo['body']));
+		$cc = explode(" ", $user['landingPageContent']);
 
-		$content = "<h4>Hi [ENDORSER]</h4>".$content."<p style='font-family: sans-serif;background:#ccc; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;'>
-                          ".$user['landingPageContent']."
-                        </p>
+		$sli = implode(" ", array_slice($cc, 0, 5));
 
-                        <div>".($bot_content ? $bot_content : '')."</div>
+		$read_more = "<p style='font-family: sans-serif;background:#ccc; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;'>
+                          ".$sli."...<a href='[AUTO_LOGIN_LINK]'>Read More</a>
+                        </p>";
 
-                        <a href='[AUTO_LOGIN_LINK]'>Click here to autologin</a>";
+		$content = "<h4>Hi [ENDORSER]</h4>".$content."
+
+			[VIDEO_SCREEN_SHOT]
+
+			[READ_MORE]";
 
 		$content 	=	str_ireplace('[ENDORSER]', get_user_meta($user_id, 'first_name', true).' '.get_user_meta($user_id, 'last_name', true), $content);
 		$content 	=	str_ireplace('@endorser_first_name', get_user_meta($user_id, 'first_name', true), $content);
 		$content 	=	str_ireplace('@endorser_last_name', get_user_meta($user_id, 'last_name', true), $content);
 		$content 	=	str_ireplace('[AUTO_LOGIN_LINK]', $AUTO_LOGIN_LINK, $content);
+		$content 	=	str_ireplace('[VIDEO_SCREEN_SHOT]', $video_thumb, $content);
+		$content 	=	str_ireplace('[READ_MORE]', $read_more, $content);
 		$content 	=	str_ireplace('[AGENT]', $agent_info->user_login, $content);
 		$content 	=	str_ireplace('[AGENT_EMAIL]', $agent_info->user_email, $content);				
 		$content	= 	str_ireplace('[SITE]', get_option('blogname'), $content);

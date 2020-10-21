@@ -755,10 +755,14 @@ Let me know if you have any questions,", '');
 	
 	function send_mail($to, $subject , $message, $fromName='', $fromEmail='', $arr=array())
 	{
+		
+
 		$option = get_option('sendgrid');
 		
+		
+
 		$sendgrid = new SendGrid($option['api']);
-		$email = new SendGrid\Email();
+		$email = new SendGrid->Mail();
 
 
 		if(count($arr))

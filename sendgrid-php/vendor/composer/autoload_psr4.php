@@ -6,10 +6,5 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'SendGrid\\Stats\\' => array($baseDir . '/lib/stats'),
-    'SendGrid\\Mail\\' => array($baseDir . '/lib/mail'),
-    'SendGrid\\Helper\\' => array($baseDir . '/lib/helper'),
-    'SendGrid\\EventWebhook\\' => array($baseDir . '/lib/eventwebhook'),
-    'SendGrid\\Contacts\\' => array($baseDir . '/lib/contacts'),
-    'SendGrid\\' => array($vendorDir . '/sendgrid/php-http-client/lib'),
+    'Symfony\\Component\\EventDispatcher\\' => array($vendorDir . '/symfony/event-dispatcher'),
 );

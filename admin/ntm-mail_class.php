@@ -755,14 +755,10 @@ Let me know if you have any questions,", '');
 	
 	function send_mail($to, $subject , $message, $fromName='', $fromEmail='', $arr=array())
 	{
-		
-
 		$option = get_option('sendgrid');
 		
-		
-
 		$sendgrid = new SendGrid($option['api']);
-		$email = new SendGrid->Mail();
+		$email = new SendGrid\Email();
 
 
 		if(count($arr))
@@ -785,7 +781,7 @@ Let me know if you have any questions,", '');
 		//$email->Body    = $message;
 
 		try {
-			$sendgrid->send($email);
+			//$sendgrid->send($email);
 		} catch(\SendGrid\Exception $e) {
 			echo $e->getCode();
 			foreach($e->getErrors() as $er) {

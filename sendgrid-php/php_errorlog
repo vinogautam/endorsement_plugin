@@ -1,0 +1,12 @@
+[18-Aug-2020 02:04:39 CST6CDT] PHP Fatal error:  Uncaught Error: Class 'SendGrid\Mail\Mail' not found in /home/finsider/public_html/wp-content/plugins/endorsement_plugin-master/sendgrid-php/test.php:4
+Stack trace:
+#0 {main}
+  thrown in /home/finsider/public_html/wp-content/plugins/endorsement_plugin-master/sendgrid-php/test.php on line 4
+[18-Aug-2020 02:11:12 CST6CDT] PHP Fatal error:  Uncaught Error: Call to undefined method SendGrid\Email::addContent() in /home/finsider/public_html/wp-content/plugins/endorsement_plugin-master/sendgrid-php/test.php:8
+Stack trace:
+#0 {main}
+  thrown in /home/finsider/public_html/wp-content/plugins/endorsement_plugin-master/sendgrid-php/test.php on line 8
+[18-Aug-2020 02:12:02 CST6CDT] PHP Fatal error:  Uncaught Error: Call to undefined method SendGrid\Response::statusCode() in /home/finsider/public_html/wp-content/plugins/endorsement_plugin-master/sendgrid-php/test.php:14
+Stack trace:
+#0 {main}
+  thrown in /home/finsider/public_html/wp-content/plugins/endorsement_plugin-master/sendgrid-php/test.php on line 14
